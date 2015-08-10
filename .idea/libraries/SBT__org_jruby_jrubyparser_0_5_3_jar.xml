@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="SBT: org.jruby:jrubyparser:0.5.3:jar">
+    <CLASSES>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.jruby/jrubyparser/jars/jrubyparser-0.5.3.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.jruby/jrubyparser/docs/jrubyparser-0.5.3-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.ivy2/cache/org.jruby/jrubyparser/srcs/jrubyparser-0.5.3-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

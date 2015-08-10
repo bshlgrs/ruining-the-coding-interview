@@ -1,0 +1,5 @@
+[warn] Scala version was updated by one of library dependencies:
+[warn] 	* org.scala-lang:scala-library:2.11.5 -> 2.11.7
+[warn] To force scalaVersion, add the following:
+[warn] 	ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+[warn] Run 'evicted' to see detailed eviction warnings

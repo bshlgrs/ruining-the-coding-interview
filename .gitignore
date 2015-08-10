@@ -1,0 +1,14 @@
+*.class
+*.log
+
+# sbt specific
+data-structure-maker/.cache
+data-structure-maker/.history
+data-structure-maker/.lib/
+data-structure-maker/dist/*
+data-structure-maker/target/
+data-structure-maker/lib_managed/
+data-structure-maker/src_managed/
+data-structure-maker/project/boot/
+data-structure-maker/project/plugins/project/
+data-structure-maker/.idea/*

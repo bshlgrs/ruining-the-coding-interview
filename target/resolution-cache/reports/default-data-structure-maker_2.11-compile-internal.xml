@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="ivy-report.xsl"?>
+<ivy-report version="1.0">
+	<info
+		organisation="default"
+		module="data-structure-maker_2.11"
+		revision="1.0"
+		conf="compile-internal"
+		confs="compile, runtime, test, provided, optional, compile-internal, runtime-internal, test-internal, plugin, sources, docs, pom, scala-tool"
+		date="20150728234029"/>
+	<dependencies>
+		<module organisation="org.scalaj" name="scalaj-http_2.11">
+			<revision name="1.1.5" status="release" pubdate="20150701122715" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://github.com/scalaj/scalaj-http" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="3">
+				<license name="Apache 2" url="http://www.apache.org/licenses/LICENSE-2.0"/>
+				<metadata-artifact status="no" details="" size="3032" time="0" location="/Users/bshlegeris/.ivy2/cache/org.scalaj/scalaj-http_2.11/ivy-1.1.5.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scalaj/scalaj-http_2.11/1.1.5/scalaj-http_2.11-1.1.5.pom"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="1.1.5" rev-constraint-default="1.1.5" rev-constraint-dynamic="1.1.5" callerrev="1.0"/>
+				<artifacts>
+					<artifact name="scalaj-http_2.11" type="jar" ext="jar" status="no" details="" size="107678" time="0" location="/Users/bshlegeris/.ivy2/cache/org.scalaj/scalaj-http_2.11/jars/scalaj-http_2.11-1.1.5.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scalaj/scalaj-http_2.11/1.1.5/scalaj-http_2.11-1.1.5.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="org.scala-lang" name="scala-library">
+			<revision name="2.11.7" status="release" pubdate="20150622131702" resolver="sbt-chain" artresolver="sbt-chain" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.11.7/" downloaded="false" searched="false" default="false" conf="compile, runtime(*), master(compile), runtime, compile(*), master, default, default(compile)" position="4">
+				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
+				<metadata-artifact status="no" details="" size="2653" time="0" location="/Users/bshlegeris/.ivy2/cache/org.scala-lang/scala-library/ivy-2.11.7.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.7/scala-library-2.11.7.pom"/>
+				<caller organisation="org.scalaj" name="scalaj-http_2.11" conf="default, compile, runtime, master" rev="2.11.7" rev-constraint-default="2.11.7" rev-constraint-dynamic="2.11.7" callerrev="1.1.5"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="2.11.5" rev-constraint-default="2.11.5" rev-constraint-dynamic="2.11.5" callerrev="1.0"/>
+				<artifacts>
+					<artifact name="scala-library" type="jar" ext="jar" status="no" details="" size="5745606" time="0" location="/Users/bshlegeris/.ivy2/cache/org.scala-lang/scala-library/jars/scala-library-2.11.7.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.7/scala-library-2.11.7.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+			<revision name="2.11.5" status="release" pubdate="20150106163212" resolver="sbt-chain" artresolver="sbt-chain" evicted="latest-revision" evicted-reason="" homepage="http://www.scala-lang.org/" extra-info.apiURL="http://www.scala-lang.org/api/2.11.5/" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="-1">
+				<license name="BSD 3-Clause" url="http://www.scala-lang.org/license.html"/>
+				<metadata-artifact status="no" details="" size="2471" time="0" location="/Users/bshlegeris/.ivy2/cache/org.scala-lang/scala-library/ivy-2.11.5.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/scala-lang/scala-library/2.11.5/scala-library-2.11.5.pom"/>
+				<evicted-by rev="2.11.7"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="2.11.5" rev-constraint-default="2.11.5" rev-constraint-dynamic="2.11.5" callerrev="1.0"/>
+				<artifacts>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="com.github.javaparser" name="javaparser-core">
+			<revision name="2.1.0" status="release" pubdate="20150518233432" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="2">
+				<metadata-artifact status="no" details="" size="3594" time="0" location="/Users/bshlegeris/.ivy2/cache/com.github.javaparser/javaparser-core/ivy-2.1.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/2.1.0/javaparser-core-2.1.0.pom"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="2.1.0" rev-constraint-default="2.1.0" rev-constraint-dynamic="2.1.0" callerrev="1.0"/>
+				<artifacts>
+					<artifact name="javaparser-core" type="jar" ext="jar" status="no" details="" size="319184" time="0" location="/Users/bshlegeris/.ivy2/cache/com.github.javaparser/javaparser-core/jars/javaparser-core-2.1.0.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/com/github/javaparser/javaparser-core/2.1.0/javaparser-core-2.1.0.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="org.jruby" name="jruby">
+			<revision name="1.6.0" status="release" pubdate="20110315122711" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="1">
+				<metadata-artifact status="no" details="" size="9509" time="0" location="/Users/bshlegeris/.ivy2/cache/org.jruby/jruby/ivy-1.6.0.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/jruby/jruby/1.6.0/jruby-1.6.0.pom"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="1.6.0" rev-constraint-default="1.6.0" rev-constraint-dynamic="1.6.0" callerrev="1.0"/>
+				<artifacts>
+					<artifact name="jruby" type="jar" ext="jar" status="no" details="" size="9503185" time="0" location="/Users/bshlegeris/.ivy2/cache/org.jruby/jruby/jars/jruby-1.6.0.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/jruby/jruby/1.6.0/jruby-1.6.0.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+		<module organisation="org.jruby" name="jrubyparser">
+			<revision name="0.5.3" status="release" pubdate="20131124110544" resolver="sbt-chain" artresolver="sbt-chain" homepage="" downloaded="false" searched="false" default="false" conf="default, compile, runtime, default(compile), master" position="0">
+				<license name="Common Public License - v 1.0" url="http://www-128.ibm.com/developerworks/library/os-cpl.html"/>
+				<license name="GNU General Public License Version 2" url="http://www.gnu.org/copyleft/gpl.html"/>
+				<license name="GNU Lesser General Public License Version 2.1" url="http://www.gnu.org/licenses/lgpl.html"/>
+				<metadata-artifact status="no" details="" size="2946" time="0" location="/Users/bshlegeris/.ivy2/cache/org.jruby/jrubyparser/ivy-0.5.3.xml" searched="false" origin-is-local="false" origin-location="https://repo1.maven.org/maven2/org/jruby/jrubyparser/0.5.3/jrubyparser-0.5.3.pom"/>
+				<caller organisation="default" name="data-structure-maker_2.11" conf="compile-internal, compile, provided, optional" rev="0.5.3" rev-constraint-default="0.5.3" rev-constraint-dynamic="0.5.3" callerrev="1.0"/>
+				<artifacts>
+					<artifact name="jrubyparser" type="jar" ext="jar" status="no" details="" size="1597978" time="0" location="/Users/bshlegeris/.ivy2/cache/org.jruby/jrubyparser/jars/jrubyparser-0.5.3.jar">
+						<origin-location is-local="false" location="https://repo1.maven.org/maven2/org/jruby/jrubyparser/0.5.3/jrubyparser-0.5.3.jar"/>
+					</artifact>
+				</artifacts>
+			</revision>
+		</module>
+	</dependencies>
+</ivy-report>
