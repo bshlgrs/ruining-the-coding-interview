@@ -6,6 +6,7 @@ import java_transpiler._
 import ast_renderers.RubyOutputter
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
+import useful_data_structures.UnorderedDataStructureLibrary
 
 import scala.collection.mutable
 
@@ -88,8 +89,7 @@ object ParserOfApi {
 
     println(querified.methods.head.descendantExpressions.mkString("\n___\n"))
 
-    println(querified.queries())
-    println(priorityQueue.queries())
+    println(querified.queries().map(UnorderedDataStructureLibrary.getBestStructureForClass(_, querified)))
   }
 
 }

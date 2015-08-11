@@ -14,7 +14,8 @@ abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
   def onInsert: Option[List[JavaStatement]]
   def onDelete: Option[List[JavaStatement]]
   def fields: List[JavaFieldDeclaration]
-  def queryCode: (List[JavaStatement], JavaExpressionOrQuery)
+  def queryCode: JavaExpressionOrQuery
+  def methodCode: JavaMethodDeclaration
 }
 
 object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
@@ -23,6 +24,7 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
     val reduction = query.reduction.get
 
     val variableName = s"what_${query.hashCode()}"
+    val methodName = s"get_$variableName"
 
     // I don't know how to choose the second argument for this thing.
 
@@ -43,7 +45,10 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
 
     def fields = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
 
-    def queryCode = (Nil, JavaExpression.parse("x"))
+    def queryCode = JavaMethodCall(JavaThis, methodName, Nil)
+
+    def methodCode = JavaMethodDeclaration(methodName, Some(JavaIntType), false, Nil,
+      List(ReturnStatement(JavaVariable(variableName))))
   }
 
   def tryToCreate(query: UnorderedQuery): Option[(UsefulUnorderedDataStructure, BigO)] = query match {

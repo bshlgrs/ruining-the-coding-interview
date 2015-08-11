@@ -18,8 +18,8 @@ case class JavaClass(name: String,
 
   def queries(): List[UnorderedQuery] = methods.flatMap(_.queries())
 
-  def unorderedTables(): Map[String, JavaClass] = {
-    magicMultisets().map((x) => x._1 -> getInnerClass(x._2).get)
+  def unorderedTables(): Map[String, JavaType] = {
+    magicMultisets.map(x => x._1 -> x._2.itemType)
   }
 
   def getMethod(name: String): Option[JavaMethodDeclaration] = {
@@ -32,12 +32,18 @@ case class JavaClass(name: String,
 
   def getInnerClass(name: String): Option[JavaClass] = innerClasses.find(_.name == name)
 
-  def magicMultisets(): Map[String, String] = {
-    fields.flatMap((fieldDeclaration: JavaFieldDeclaration) => fieldDeclaration.javaType match {
+  lazy val magicMultisets: Map[String, MagicMultiset] = {
+    val names: Set[String] = fields.flatMap((fieldDeclaration: JavaFieldDeclaration) => fieldDeclaration.javaType match {
       case JavaClassType(classTypeName, args) if classTypeName == "MagicMultiset" =>
-        List(fieldDeclaration.name -> args.head.toScalaTypeString())
-      case _ => Nil
-    }).toMap
+        Some(fieldDeclaration.name)
+      case _ => None
+    }).toSet
+
+    names.map({(name) =>
+      val javaType = getField(name).get.javaType
+      val supportsInsert = methodsCalledOnObject(name).contains("insert")
+      val supportsRemove = methodsCalledOnObject(name).contains("remove")
+      name -> MagicMultiset(javaType, supportsInsert, supportsRemove)}).toMap
   }
 
   def methodsCalledOnObject(name: String): List[String] = {

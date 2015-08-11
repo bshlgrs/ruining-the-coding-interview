@@ -2,6 +2,7 @@ package cas
 
 import scala.util.Random
 
+
 abstract class MathExp[A] {
   type NameExpression = MathExp[Name]
 

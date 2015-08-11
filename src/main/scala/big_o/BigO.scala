@@ -4,9 +4,15 @@ import java_transpiler.{JavaExpressionOrQuery, JavaVariable, JavaMethodCall, Jav
 
 import com.github.javaparser.ast.expr.MethodCallExpr
 
-case class BigO(powerOfN: Int, sqrtOfN: Boolean, powerOfLogN: Int) {
+case class BigO(powerOfN: Int, sqrtOfN: Boolean, powerOfLogN: Int) extends Ordered[BigO] {
   assert(powerOfN >= 0)
   assert(powerOfLogN >= 0)
+
+  def compare(other: BigO): Int = (this, other) match {
+    case (BigO(n1, _, _),BigO(n2, _, _)) if n1 != n2 => n1 - n2
+    case (BigO(_, b1, _), BigO(_, b2, _)) if b1 != b2 => if (b1) 1 else -1
+    case (BigO(_, _, n1), BigO(_, _, n2)) => n1 - n2
+  }
 
   // this is a hack to make java interop nicer.
   def time() = this
