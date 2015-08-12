@@ -27,7 +27,7 @@ Compilers do all sorts of optimizations which humans don’t want to. For exampl
 
 your compiler will notice the repeated k * 3 multiplication and move that outside the loop. The compiler *spotted a slow operation and moved it outside a critical loop*. There’s that pattern again.
 
-So my project is to make optimizing compilers at a higher level than that. This is obviously a highly ambitious project.
+So my project is to make optimizing compilers at a higher level than that: at the level of choosing data structures and algorithms, rather than at the level of choosing where to compute loop invariants. This is obviously a highly ambitious project.
 
 For this presentation I’m just going to be talking about the part of this I’ve implemented. Programmers should be able to use high level data structures like multisets and have a compiler decide what data structures the multisets should be using under the hood. I’m trying to make that happen.
 
