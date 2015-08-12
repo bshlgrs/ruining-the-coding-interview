@@ -1,5 +1,0 @@
-[0m[[33mwarn[0m] [0mScala version was updated by one of library dependencies:[0m
-[0m[[33mwarn[0m] [0m	* org.scala-lang:scala-library:2.11.5 -> 2.11.7[0m
-[0m[[33mwarn[0m] [0mTo force scalaVersion, add the following:[0m
-[0m[[33mwarn[0m] [0m	ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }[0m
-[0m[[33mwarn[0m] [0mRun 'evicted' to see detailed eviction warnings[0m
