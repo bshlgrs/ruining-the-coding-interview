@@ -27,4 +27,3 @@ object UsefulDataStructureHelper {
     wrapInWheres(whereClauses.filter((x) => x.isConstant || x.isSeparable), statements)
   }
 }
-

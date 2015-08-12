@@ -14,7 +14,7 @@ case class MagicMultiset(itemClass: JavaClass, supportsInsert: Boolean, supports
       val removeBody = auxillaryDataStructures.collect({
         case (query, Some(dataStructure)) => query.source match {
           case JavaVariable(querySourceName) if name == querySourceName =>
-            dataStructure.removalFragment.get
+            dataStructure.onRemove.get
         }
       }).flatten.toList
 
@@ -34,7 +34,7 @@ case class MagicMultiset(itemClass: JavaClass, supportsInsert: Boolean, supports
       val insertBody = auxillaryDataStructures.collect({
         case (query, Some(dataStructure)) => query.source match {
           case JavaVariable(querySourceName) if name == querySourceName =>
-            dataStructure.insertionFragment.get
+            dataStructure.onInsert.get
         }
       }).flatten.toList
 

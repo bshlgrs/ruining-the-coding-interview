@@ -12,8 +12,11 @@ case class WhereClause(
   val constantWhereClause = ConstantWhereClause.build(this)
   val isConstant = constantWhereClause.isDefined
 
-  val separableWhereClause = SeparableWhereClause.build(this)
-  val isSeparable = separableWhereClause.isDefined
+  val separableInequalityWhereClause = SeparableInequalityWhereClause.build(this)
+  val separableEqualityWhereClause = SeparableEqualityWhereClause.build(this)
+
+  val isSeparable = separableInequalityWhereClause.isDefined || separableEqualityWhereClause.isDefined
+  val isEqualitySeparable = separableEqualityWhereClause.isDefined
 
   // just checking I haven't screwed up...
   assert(isSeparable || ! isConstant, s"a where clause ($this) is allegedly not separable but constant")
@@ -82,18 +85,40 @@ object ConstantWhereClause {
   }
 }
 
-case object SeparableWhereClause {
-  def build(whereClause: WhereClause): Option[SeparableWhereClause] = {
-    if (whereClause.lhs.freeVariables == Set())
-      Some(SeparableWhereClause(whereClause.lhs, whereClause.rhs))
-    else if (whereClause.rhs.freeVariables == Set())
-      Some(SeparableWhereClause(whereClause.rhs, whereClause.lhs))
+case object SeparableInequalityWhereClause {
+  def build(whereClause: WhereClause): Option[SeparableInequalityWhereClause] = {
+    if (!whereClause.isEqualsInsteadOfGreaterThan)
+      if (whereClause.lhs.freeVariables == Set())
+        Some(SeparableInequalityWhereClause(whereClause.lhs, whereClause.rhs))
+      else if (whereClause.rhs.freeVariables == Set())
+        Some(SeparableInequalityWhereClause(whereClause.rhs, whereClause.lhs))
+      else
+        None
     else
       None
   }
 }
 
-case class SeparableWhereClause(
+case class SeparableInequalityWhereClause(
              nodeFunction: JavaExpressionOrQuery,
-             paramFunction: JavaExpressionOrQuery) extends ConstantWhereClause
+             paramFunction: JavaExpressionOrQuery) extends WhereClauseNiceness
+
+
+case object SeparableEqualityWhereClause {
+  def build(whereClause: WhereClause): Option[SeparableEqualityWhereClause] = {
+    if (whereClause.isEqualsInsteadOfGreaterThan)
+      if (whereClause.lhs.freeVariables == Set())
+        Some(SeparableEqualityWhereClause(whereClause.lhs, whereClause.rhs))
+      else if (whereClause.rhs.freeVariables == Set())
+        Some(SeparableEqualityWhereClause(whereClause.rhs, whereClause.lhs))
+      else
+        None
+    else
+      None
+  }
+}
+
+case class SeparableEqualityWhereClause(
+               nodeFunction: JavaExpressionOrQuery,
+               paramFunction: JavaExpressionOrQuery) extends WhereClauseNiceness
 

@@ -4,11 +4,12 @@ import java_transpiler._
 import java_transpiler.queries._
 
 import big_o.BigO
-import useful_data_structures.data_structure_library.MonoidMemoizerFactory
+import useful_data_structures.data_structure_library._
 
 object UnorderedDataStructureLibrary {
   val helpfulStructures: List[UsefulUnorderedDataStructureFactory] = List(
-    MonoidMemoizerFactory
+    MonoidMemoizerFactory,
+    GroupMemoizerFactory
   )
 
   def getBestStructureForClass(query: UnorderedQuery, javaClass: JavaClass): Option[UsefulUnorderedDataStructure] = {

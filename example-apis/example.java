@@ -24,7 +24,7 @@ public class Example  {
     }
 
     // if this isn't commented out, my code doesn't know how to optimize getAverageIncomeOfOverFifties.
-    // void removePerson(Person person) {
-    //     stuff.remove(person);
-    // }
+    void removePerson(Person person) {
+        stuff.remove(person);
+    }
 }

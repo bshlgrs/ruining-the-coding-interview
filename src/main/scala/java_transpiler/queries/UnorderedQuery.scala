@@ -133,7 +133,7 @@ case class UnorderedQuery(
     }
   }
 
-  lazy val trickyWhereClauses = whereClauses.filter((x) => ! x.isConstant && ! x.isSeparable)
+  lazy val trickyWhereClauses = whereClauses.filter((x) => ! x.isConstant) // && ! x.isEqualitySeparable )
 }
 
 object UnorderedQuery {

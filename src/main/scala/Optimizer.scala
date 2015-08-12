@@ -14,8 +14,6 @@ object Optimizer {
       x -> UnorderedDataStructureLibrary.getBestStructureForClass(x, querified)
     }).toMap
 
-    println(auxiliaryDataStructures)
-
     querified.actualizeQueries(auxiliaryDataStructures)
   }
 

@@ -9,4 +9,10 @@ object VariableNameGenerator {
     badVariableNames = badVariableNames.tail
     result
   }
+
+  def getRandomName(): String = {
+    "x" + randomString(10)
+  }
+
+  def randomString(length: Int) = Stream.continually(util.Random.nextPrintableChar) take length mkString
 }

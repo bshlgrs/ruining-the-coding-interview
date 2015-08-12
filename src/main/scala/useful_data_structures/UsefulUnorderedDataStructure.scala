@@ -12,16 +12,23 @@ abstract class UsefulUnorderedDataStructureFactory {
 
 abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
   def onInsert: Option[List[JavaStatement]] = insertionFragment.map { (fragment) =>
-    UsefulDataStructureHelper.wrapInWheres(query.whereClauses, fragment)
+    UsefulDataStructureHelper.filterAndWrapInWheres(query.whereClauses, fragment)
   }
 
   def onRemove: Option[List[JavaStatement]] = removalFragment.map { (fragment) =>
-    UsefulDataStructureHelper.wrapInWheres(query.whereClauses, fragment)
+    UsefulDataStructureHelper.filterAndWrapInWheres(query.whereClauses, fragment)
   }
 
   def insertionFragment: Option[List[JavaStatement]]
   def removalFragment: Option[List[JavaStatement]]
-  def fields: List[JavaFieldDeclaration]
+  def fields: List[JavaFieldDeclaration] //= {
+//    val separableEqualsWhereClauses = query.whereClauses.filter((x) => x.isSeparable && ! x.isConstant)
+//
+//
+//  }
+
+//  def fieldFragments: List[(String, JavaType)]
+
   def queryCode: JavaExpressionOrQuery
   def methodCode: Option[JavaMethodDeclaration]
 }

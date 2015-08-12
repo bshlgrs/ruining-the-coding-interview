@@ -3,7 +3,8 @@ package java_transpiler.queries
 import java_transpiler._
 
 import ast_renderers.RubyOutputter
-import cas.MathExp
+import cas.{CasVariable, MathExp}
+import helpers.VariableNameGenerator
 
 case class Reduction(start: JavaExpressionOrQuery,
                      mapper: Mapper,
@@ -19,6 +20,10 @@ case class Reduction(start: JavaExpressionOrQuery,
       mapper.copy(body = modifier.applyToExpr(mapper.body)),
       reducer.copy(body = modifier.applyToExpr(reducer.body)))
   }
+
+  lazy val isInvertible: Boolean = invertedReducer.isDefined
+
+  lazy val invertedReducer: Option[Reducer] = reducer.invert
 }
 
 object Reduction {
@@ -62,4 +67,17 @@ case class Reducer(arg1: String, arg2: String, body: JavaExpressionOrQuery) {
   def asJavaLambda: JavaLambdaExpr = JavaLambdaExpr(List(arg1 -> JavaIntType, arg2 -> JavaIntType), body)
 
   def useBody(map: Map[String, JavaExpressionOrQuery]): JavaExpressionOrQuery = body.replaceVariables(map)
+
+  def invert: Option[Reducer] = {
+    val otherSide = JavaVariable(VariableNameGenerator.getRandomName())
+
+    body match {
+      case JavaMath(ast) =>
+        (ast - JavaMathHelper.casify(otherSide)).solve(JavaVariable(arg1)) match {
+          case Some(solution) => Some(Reducer(arg2, otherSide.name, JavaMathHelper.decasify(solution)))
+          case None => None
+        }
+      case _ => None
+    }
+  }
 }
