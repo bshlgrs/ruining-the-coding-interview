@@ -86,7 +86,7 @@ abstract class MathExp[A] {
   }
 
 //  def separateVariables(set: Set[A], otherSide: MathExp[A]): Option[(MathExp[A], MathExp[A])]
-//  def solve(name: A, otherSide: Expression): Option[List[Expression]]
+  def solve(name: A): Option[MathExp[A]] = None
 }
 
 case class Sum[A] private (summands: Set[MathExp[A]]) extends MathExp[A] {
@@ -102,14 +102,16 @@ case class Sum[A] private (summands: Set[MathExp[A]]) extends MathExp[A] {
 
   def mapOverVariables[B](f: A => B): MathExp[B] = summands.toList.map(_.mapOverVariables(f)).reduce(_ + _)
 
-//  def solve(name: A, otherSide: Expression) = {
-//    val (doesNotContainA, containsA) = summands.partition(_.variables.contains(name))
-//
-//    containsName.size match {
-//      case 0 =>
-//
-//    }
-//  }
+  override def solve(name: A): Option[MathExp[A]] = {
+    val (yes, no) = summands.partition(_.variables.contains(name))
+
+    yes.toList match {
+      case List(CasVariable(x)) if x == name =>
+        Some(Sum(no))
+      case _ =>
+        None
+    }
+  }
 }
 
 object Sum {

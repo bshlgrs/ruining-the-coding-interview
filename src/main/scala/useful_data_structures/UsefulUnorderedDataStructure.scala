@@ -24,6 +24,19 @@ object UsefulDataStructureHelper {
       List(IfStatement(condition, statement, Nil)).asInstanceOf[List[JavaStatement]]
     }
   }
+
+  def wrapInConstantWheres(whereClauses: List[WhereClause], statements: List[JavaStatement]) = {
+    whereClauses match {
+      case Nil => Some(statements)
+      case _ => {
+        val clauses: List[JavaExpressionOrQuery] = whereClauses.map({ (x) =>
+          x.replaceTarget("item").toJavaExpression
+        })
+
+        Some(UsefulDataStructureHelper.wrapInIfs(clauses, statements))
+      }
+    }
+  }
 }
 
 

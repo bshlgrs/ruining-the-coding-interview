@@ -13,26 +13,35 @@ case class UnorderedQuery(
 
   lazy val targetIsMagic: Boolean = source.isInstanceOf[JavaVariable]
 
+
+
   val parameters = whereClauses.flatMap(_.freeVariables)++ mbLimiter.map(_.freeVariables) ++ mbReduction.map(_.freeVariables)
 
   def childrenExpressions(): List[JavaExpressionOrQuery] = {
     whereClauses.flatMap(_.childrenExpressions())
   }
 
+  val allowedMethods: Map[String, Int] = Map("head" -> 0)
+
   def applyMethod(methodName: String, args: List[JavaExpressionOrQuery], context: JavaContext): JavaExpressionOrQuery = {
     (methodName, args) match {
       case ("filter", List(arg)) => this.filter(arg, context)
       case ("limitBy", List(orderingFunction, limitingNumberFunction)) =>
         this.limitBy(orderingFunction, limitingNumberFunction, context)
-//      case ("head", Nil) =>
-//        this.head(context)
       case ("reduce", List(start, map, reducer)) =>
         this.reduce(start, map, reducer, context)
       case ("sum", List(map)) =>
         this.sum(map, context)
       case ("count", List()) =>
         this.count(context)
-      case (_, _) => JavaMethodCall(UnorderedQueryApplication(this), methodName, args)
+      case (_, _) =>
+        if (allowedMethods.contains(methodName))
+          if (allowedMethods(methodName) == args.length)
+            JavaMethodCall(UnorderedQueryApplication(this),methodName, args)
+          else
+            throw new RuntimeException(s"call $methodName to $source has wrong number of args: ${args.length} instead of ${allowedMethods(methodName)}")
+        else
+          throw new RuntimeException(s"there is no method called $methodName on $source")
     }
   }
 
@@ -126,7 +135,6 @@ case class UnorderedQuery(
     }
   }
 }
-
 
 object UnorderedQuery {
   def blank(source: JavaExpressionOrQuery) = UnorderedQuery(source, Nil, None, None)

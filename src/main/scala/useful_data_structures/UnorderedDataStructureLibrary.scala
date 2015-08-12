@@ -4,6 +4,7 @@ import java_transpiler._
 import java_transpiler.queries._
 
 import big_o.BigO
+import useful_data_structures.data_structure_library.MonoidMemoizerFactory
 
 object UnorderedDataStructureLibrary {
   val helpfulStructures: List[UsefulUnorderedDataStructureFactory] = List(

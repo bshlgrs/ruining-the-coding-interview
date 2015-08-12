@@ -47,6 +47,8 @@ object Reduction {
 case class Mapper(arg: String, body: JavaExpressionOrQuery) {
   lazy val freeVariables = body.freeVariables - arg
 
+  def useStr(name: String) = body.replaceVariables(Map(arg -> JavaVariable(name)))
+
   override def toString: String = s"($arg -> ${RubyOutputter.outputExpression(body)})"
 
   def asJavaLambda: JavaLambdaExpr = JavaLambdaExpr(List(arg -> JavaIntType), body)
@@ -58,6 +60,8 @@ case class Reducer(arg1: String, arg2: String, body: JavaExpressionOrQuery) {
   override def toString: String = s"($arg1, $arg2 -> ${RubyOutputter.outputExpression(body)})"
 
   def asJavaLambda: JavaLambdaExpr = JavaLambdaExpr(List(arg1 -> JavaIntType, arg2 -> JavaIntType), body)
+
+  def useBody(map: Map[String, JavaExpressionOrQuery]): JavaExpressionOrQuery = body.replaceVariables(map)
 }
 
 

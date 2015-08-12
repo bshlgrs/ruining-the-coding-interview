@@ -16,7 +16,7 @@ public class PriorityQueue  {
     }
 
     Item getCheapest() {
-        return stuff.limitBy(x -> x.priority, 1).head;
+        return queue.limitBy(x -> x.priority, 1).head;
     }
 
     void popCheapest() {
