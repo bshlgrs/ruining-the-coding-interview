@@ -3,7 +3,7 @@ package java_transpiler
 import cas._
 import com.github.javaparser.ast.expr.BinaryExpr
 
-object JavaBinaryOperation {
+object JavaMathHelper {
   def opToMath(op: BinaryExpr.Operator, lhs: JavaExpressionOrQuery, rhs: JavaExpressionOrQuery): JavaExpressionOrQuery = {
     op match {
       case BinaryExpr.Operator.plus => JavaMath(casify(lhs) + casify(rhs))
@@ -17,6 +17,7 @@ object JavaBinaryOperation {
       case BinaryExpr.Operator.binAnd => JavaMath(bitwiseAnd(casify(rhs), casify(lhs)))
       case BinaryExpr.Operator.or => JavaMath(logicalOr(casify(rhs), casify(lhs)))
       case BinaryExpr.Operator.binOr => JavaMath(bitwiseAnd(casify(rhs), casify(lhs)))
+      case BinaryExpr.Operator.remainder => JavaMath(modulo(casify(rhs), casify(lhs)))
     }
   }
 

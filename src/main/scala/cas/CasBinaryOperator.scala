@@ -1,12 +1,12 @@
 package cas
 
-class CasBinaryOperator[A](val name: Name,
-                           val properties: Set[OperatorProperty],
-                           val identities: List[MathExp[A]] = List(),
-                           val annihilator: Option[MathExp[A]] = None) {
+case class CasBinaryOperator[A](name: Name,
+                           properties: Set[OperatorProperty],
+                           identities: List[MathExp[A]] = List(),
+                           annihilator: Option[MathExp[A]] = None) {
   def apply(lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = lhs.applyBinaryOperator(this, rhs)
 
-  override def toString = s"$name[${properties.mkString(",")}]"
+  override def toString = name.name
 
   def lossilyConvert[B](): CasBinaryOperator[B] = new CasBinaryOperator[B](name, properties)
 
@@ -54,31 +54,38 @@ case object Associative extends OperatorProperty
 case object Idempotent extends OperatorProperty
 
 object min {
-  case class operator[A]() extends CasBinaryOperator[A](Name("min"), Set(Commutative, Associative, Idempotent))
+  def operator[A]() = CasBinaryOperator[A](Name("min"), Set(Commutative, Associative, Idempotent))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }
 
 object max {
-  case class operator[A]() extends CasBinaryOperator[A](Name("max"), Set(Commutative, Associative, Idempotent))
+  def operator[A]() = CasBinaryOperator[A](Name("max"), Set(Commutative, Associative, Idempotent))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }
 
 object bitwiseAnd {
-  case class operator[A]() extends CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
+  def operator[A]() = CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }
 
+object modulo {
+  def operator[A]() = CasBinaryOperator[A](Name("%"), Set())
+
+  def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
+}
+
+
 object logicalAnd {
-  case class operator[A]() extends CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
+  def operator[A]() = CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }
 
 object logicalOr {
-  case class operator[A]() extends CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
+  def operator[A]() = CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }

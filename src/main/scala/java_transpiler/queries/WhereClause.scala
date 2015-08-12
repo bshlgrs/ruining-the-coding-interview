@@ -7,8 +7,7 @@ case class WhereClause(
                   nodeVariableName: String,
                   lhs: JavaExpressionOrQuery,
                   rhs: JavaExpressionOrQuery,
-                  isEqualsInsteadOfGreaterThan: Boolean,
-                  context: JavaContext) {
+                  isEqualsInsteadOfGreaterThan: Boolean) {
 
   val constantWhereClause = ConstantWhereClause.build(this)
   val separableWhereClause = SeparableWhereClause.build(this)
@@ -18,10 +17,28 @@ case class WhereClause(
   }
 
   lazy val freeVariables = childrenExpressions().flatMap(_.freeVariables).toSet - nodeVariableName
+
+  def modify(astModifier: AstModifier): WhereClause = {
+    WhereClause(nodeVariableName, lhs.modify(astModifier), rhs.modify(astModifier), isEqualsInsteadOfGreaterThan)
+  }
+
+  def replaceTarget(newTarget: String): WhereClause = {
+    val map = Map(nodeVariableName -> JavaVariable(newTarget))
+    WhereClause(newTarget, lhs.replaceVariables(map), rhs.replaceVariables(map), isEqualsInsteadOfGreaterThan)
+  }
+
+  lazy val toJavaExpression: JavaExpression = {
+    val op = if (isEqualsInsteadOfGreaterThan)
+      niceFunctions.equals.equals[JavaExpressionOrQuery]
+    else
+      niceFunctions.greaterThan.greaterThan[JavaExpressionOrQuery]
+
+    JavaMath(CasFunctionApplication[JavaExpressionOrQuery](op, List(JavaMathHelper.casify(lhs), JavaMathHelper.casify(rhs))))
+  }
 }
 
 object WhereClause {
-  def build(predicate: JavaExpressionOrQuery, context: JavaContext): WhereClause = {
+  def build(predicate: JavaExpressionOrQuery): WhereClause = {
     predicate match {
       case JavaLambdaExpr(args, body) =>
         assert(args.length == 1, s"where clause $predicate")
@@ -29,16 +46,14 @@ object WhereClause {
           case JavaMath(CasFunctionApplication(op, List(lhs, rhs))) =>
             if (op == niceFunctions.equals.equals)
               WhereClause(args.head._1,
-                JavaBinaryOperation.decasify(lhs),
-                JavaBinaryOperation.decasify(rhs),
-                true,
-                context)
+                JavaMathHelper.decasify(lhs),
+                JavaMathHelper.decasify(rhs),
+                true)
             else if (op == niceFunctions.greaterThan.greaterThan)
               WhereClause(args.head._1,
-                JavaBinaryOperation.decasify(lhs),
-                JavaBinaryOperation.decasify(rhs),
-                false,
-                context)
+                JavaMathHelper.decasify(lhs),
+                JavaMathHelper.decasify(rhs),
+                false)
             else
               throw new InternalTypeError(s"I have no idea how to do that: $predicate")
         }

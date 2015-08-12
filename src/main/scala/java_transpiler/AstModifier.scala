@@ -1,6 +1,9 @@
 package java_transpiler
 
+import java_transpiler.queries.UnorderedQuery
+
 import com.sun.javafx.fxml.expression.VariableExpression
+import useful_data_structures.UsefulUnorderedDataStructure
 
 abstract class AstModifier() {
   def stmtMapper(statement: JavaStatement): List[JavaStatement]
@@ -37,9 +40,15 @@ abstract class AstModifier() {
     case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, applyToExpr(body))
     case JavaUnit => JavaThis
     case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, applyToExpr(value))
-    case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(mapOverExpr))
+    case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(applyToExpr))
     case expr: JavaStringLiteral => expr
-    case expr: JavaMath => JavaMath(expr.math.mapOverVariables(mapOverExpr))
+    case JavaMath(math) => JavaMath(math.mapOverVariables(applyToExpr))
+    case UnorderedQueryApplication(UnorderedQuery(source, wheres, limiter, reduction)) => {
+      val newQuery = UnorderedQuery(source, wheres.map(_.modify(this)), limiter.map(_.modify(this)), reduction.map(_.modify(this)))
+
+      UnorderedQueryApplication(newQuery)
+    }
+
   }
 
   def mapOverClass(javaClass: JavaClass): JavaClass = javaClass.modifyWithAstModifier(this)

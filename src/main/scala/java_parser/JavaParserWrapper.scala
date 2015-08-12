@@ -6,7 +6,7 @@ import java_transpiler._
 import ast_renderers.RubyOutputter
 import com.github.javaparser.JavaParser
 import com.github.javaparser.ast.CompilationUnit
-import useful_data_structures.UnorderedDataStructureLibrary
+import useful_data_structures.{Optimizer, UnorderedDataStructureLibrary}
 
 import scala.collection.mutable
 
@@ -65,31 +65,22 @@ object ParserOfApi {
         |
         |    MagicMultiset<Item> stuff = new MagicMultiset<Item>();
         |
-        |    int getCheapestByPriority1() {
-        |        return stuff.limitBy(x -> x.priority1, 1).head();
-        |    }
+        |//  int getCheapestByPriority1() {
+        |//      return stuff.limitBy(x -> x.priority1, 1).head();
+        |//  }
         |
-        |    int getCheapestByPriority2() {
-        |        return stuff.limitBy(x -> x.priority2, 1).head();
-        |    }
+        |//  int getCheapestByPriority2() {
+        |//      return stuff.limitBy(x -> x.priority2, 1).head();
+        |//  }
+        |
+        |    int getSum() { return stuff.filter(x -> x.id % 2 == 0).reduce(0, (x) -> x.id, (x, y) -> x + y); }
         |
         |    int insertItem(int priority1, int priority2, int id) {
         |        stuff.insert(priority1, priority2, id);
         |    }
-        |
-        |    int popCheapest() {
-        |        int cheapest = getCheapest();
-        |        stuff.remove(cheapest);
-        |        return cheapest;
-        |    }
         |}
       """.stripMargin)
 
-    val querified = priorityQueue.querify()
-
-    println(querified.methods.head.descendantExpressions.mkString("\n___\n"))
-
-    println(querified.queries().map(UnorderedDataStructureLibrary.getBestStructureForClass(_, querified)))
+    println(RubyOutputter.outputClass(Optimizer.optimize(priorityQueue)))
   }
-
 }

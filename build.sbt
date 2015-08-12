@@ -11,3 +11,8 @@ libraryDependencies ++= List(
   "org.scalatest" % "scalatest_2.11" % "2.2.4" % "test",
   "org.scalacheck" %% "scalacheck" % "1.12.4" % "test",
   "org.scalaj" %% "scalaj-http" % "1.1.5")
+
+mainClass in (Compile, run) := Some("useful_data_structures.Optimizer")
+
+ivyScala := ivyScala.value map { _.copy(overrideScalaVersion = true) }
+

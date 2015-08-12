@@ -1,6 +1,6 @@
 package java_transpiler.queries
 
-import java_transpiler.{JavaLambdaExpr, JavaMath, JavaExpressionOrQuery}
+import java_transpiler._
 
 import ast_renderers.RubyOutputter
 import cas.MathExp
@@ -10,11 +10,14 @@ case class LimitByClause(nodeVariableName: String,
                          limitingFunction: JavaExpressionOrQuery) {
   def childrenExpressions() = List(orderingFunction, limitingFunction)
 
-  def toReasonableString(): String = {
+  override def toString: String = {
     s"LimitBy($nodeVariableName, ${RubyOutputter.outputExpression(orderingFunction)}, ${RubyOutputter.outputExpression(limitingFunction)})"
   }
 
   lazy val freeVariables: Set[String] = childrenExpressions().flatMap(_.freeVariables).toSet - nodeVariableName
+
+  def modify(modifier: AstModifier): LimitByClause =
+    LimitByClause(nodeVariableName, modifier.applyToExpr(orderingFunction), modifier.applyToExpr(limitingFunction))
 
   val constantSizeLimitBy = ConstantSizeLimitBy.build(this)
 }

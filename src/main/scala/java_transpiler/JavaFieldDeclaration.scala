@@ -4,7 +4,9 @@ import com.github.javaparser.ast.body._
 
 
 case class JavaFieldDeclaration(name: String, javaType: JavaType, initialValue: Option[JavaExpressionOrQuery] = None) {
-  def modifyWithAstModifier(astModifier: AstModifier): JavaFieldDeclaration = ???
+  def modifyWithAstModifier(astModifier: AstModifier): JavaFieldDeclaration = {
+    JavaFieldDeclaration(name, javaType, initialValue.map(astModifier.applyToExpr))
+  }
 }
 
 object JavaFieldDeclaration {

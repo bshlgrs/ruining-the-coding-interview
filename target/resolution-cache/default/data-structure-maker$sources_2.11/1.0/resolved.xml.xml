@@ -4,7 +4,7 @@
 		module="data-structure-maker$sources_2.11"
 		revision="1.0"
 		status="integration"
-		publication="20150728234030"
+		publication="20150811172613"
 	/>
 	<configurations>
 		<conf name="default" visibility="public" description=""/>
@@ -15,6 +15,9 @@
 		<dependency org="org.scala-sbt" name="sbt" rev="0.13.7" transitive="false" conf="default->default(compile)">
 			<artifact name="sbt" type="src" ext="jar" conf="sources" e:classifier="sources"/>
 		</dependency>
+		<dependency org="org.scala-lang" name="scala-library" rev="2.11.5" transitive="false" conf="default->default(compile)" info.apiURL="http://www.scala-lang.org/api/2.11.5/">
+			<artifact name="scala-library" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		</dependency>
 		<dependency org="org.scala-sbt" name="main" rev="0.13.7" transitive="false" conf="default->default(compile)">
 			<artifact name="main" type="src" ext="jar" conf="sources" e:classifier="sources"/>
 		</dependency>
@@ -23,6 +26,18 @@
 		</dependency>
 		<dependency org="org.scala-sbt" name="classpath" rev="0.13.7" transitive="false" conf="default->default(compile)">
 			<artifact name="classpath" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		</dependency>
+		<dependency org="org.scala-lang" name="scala-compiler" rev="2.11.5" transitive="false" conf="default->default(compile)">
+			<artifact name="scala-compiler" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		</dependency>
+		<dependency org="org.scala-lang" name="scala-reflect" rev="2.11.5" transitive="false" conf="default->default(compile)" info.apiURL="http://www.scala-lang.org/api/2.11.5/">
+			<artifact name="scala-reflect" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		</dependency>
+		<dependency org="org.scala-lang.modules" name="scala-xml_2.11" rev="1.0.3" transitive="false" conf="default->default(compile)">
+			<artifact name="scala-xml_2.11" type="src" ext="jar" conf="sources" e:classifier="sources"/>
+		</dependency>
+		<dependency org="org.scala-lang.modules" name="scala-parser-combinators_2.11" rev="1.0.3" transitive="false" conf="default->default(compile)">
+			<artifact name="scala-parser-combinators_2.11" type="src" ext="jar" conf="sources" e:classifier="sources"/>
 		</dependency>
 		<dependency org="org.scala-sbt" name="launcher-interface" rev="0.13.7" transitive="false" conf="default->default(compile)">
 			<artifact name="launcher-interface" type="src" ext="jar" conf="sources" e:classifier="sources"/>
@@ -156,5 +171,8 @@
 		<dependency org="com.github.mdr" name="ascii-graphs_2.10" rev="0.0.3" transitive="false" conf="default->default(compile)">
 			<artifact name="ascii-graphs_2.10" type="src" ext="jar" conf="sources" e:classifier="sources"/>
 		</dependency>
+		<override org="org.scala-lang" module="scala-library" matcher="exact" rev="2.11.5"/>
+		<override org="org.scala-lang" module="scala-compiler" matcher="exact" rev="2.11.5"/>
+		<override org="org.scala-lang" module="scala-reflect" matcher="exact" rev="2.11.5"/>
 	</dependencies>
 </ivy-module>

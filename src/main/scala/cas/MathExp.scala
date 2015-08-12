@@ -36,7 +36,7 @@ abstract class MathExp[A] {
 
   def -(other: MathExp[A]): MathExp[A] = this + other * Number(-1)
 
-  def /(other: MathExp[A]): MathExp[A] = this * other ** Number(-1)
+  def /(other: MathExp[A]): MathExp[A] = this * (other ** Number(-1))
 
   def **(exponent: MathExp[A]): MathExp[A] = (this, exponent) match {
     case (_, Number(0)) => Number(1)

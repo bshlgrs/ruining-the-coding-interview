@@ -41,7 +41,7 @@ sealed abstract class JavaExpression extends JavaExpressionOrQuery {
     case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, value.querify(c))
     case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(_.querify(c)))
     case expr: JavaStringLiteral => this
-    case JavaMath(math) => JavaBinaryOperation.decasify(math.mapOverVariables(_.querify(c)))
+    case JavaMath(math) => JavaMathHelper.decasify(math.mapOverVariables(_.querify(c)))
   }
 
   private def querifyMethodCall(callee: JavaExpressionOrQuery,
@@ -108,11 +108,11 @@ object JavaExpression {
 
       val outExp = mbOp match {
         case None => build(exp.getValue)
-        case Some(op) => JavaBinaryOperation.opToMath(op, JavaFieldAccess(JavaThis, lhs), build(exp.getValue))
+        case Some(op) => JavaMathHelper.opToMath(op, JavaFieldAccess(JavaThis, lhs), build(exp.getValue))
       }
       JavaAssignmentExpression(lhs, isLocal, outExp)
     case exp: BinaryExpr =>
-      JavaBinaryOperation.opToMath(exp.getOperator, build(exp.getLeft), build(exp.getRight)).asInstanceOf[JavaExpression]
+      JavaMathHelper.opToMath(exp.getOperator, build(exp.getLeft), build(exp.getRight)).asInstanceOf[JavaExpression]
     //    case exp: MethodCallExpr =>
     //      ???
     case exp: NameExpr => JavaVariable(exp.getName)

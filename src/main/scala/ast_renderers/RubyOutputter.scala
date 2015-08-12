@@ -3,6 +3,7 @@ package ast_renderers
 import java.io.{File, PrintWriter}
 import java_transpiler._
 
+import cas._
 import external_interfaces.ExternalInterfaces
 
 object RubyOutputter {
@@ -60,7 +61,7 @@ object RubyOutputter {
         case false => s"return ${outputExpression(exp)}"
       }
       case VariableDeclarationStatement(name, _, initialValue) => initialValue match {
-        case Some(value) => "name = " + outputExpression(value)
+        case Some(value) => s"$name = " + outputExpression(value)
         case None => ""
       }
       case IfStatement(cond, thenCase, elseCase) =>
@@ -72,7 +73,7 @@ object RubyOutputter {
     (isAtEnd, stmt) match {
       case (_, _: ReturnStatement) => code
       case (false, _) => code
-      case (true, _) => code + "\nnil" // do I actually want this case?
+      case (true, _) => code// + "\nnil" // do I actually want this case?
     }
   }
 
@@ -83,7 +84,7 @@ object RubyOutputter {
   }
 
   def outputExpression(exp: JavaExpressionOrQuery): String = exp match {
-    case JavaMath(ast) => ast.mapOverVariables(outputExpression).toString
+    case JavaMath(ast) => outputMath(ast.mapOverVariables(outputExpression))
     case JavaAssignmentExpression(name, isLocal, expr) =>
       isLocal match {
         case true => s"$name = ${outputExpression(expr)}"
@@ -105,6 +106,19 @@ object RubyOutputter {
     case JavaMethodCall(scope, field, args) => outputExpression(scope) + "." + field + mbBracket(args.map(outputExpression))
     case JavaNull => "nil"
     case UnorderedQueryApplication(query) => query.toString
+  }
+
+  def outputMath(math: MathExp[String]): String = math match {
+    case Sum(terms) => "(" + terms.map(outputMath).mkString(" + ") + ")"
+    case CasVariable(thing) => thing
+    case Product(terms) => "(" + terms.map(outputMath).mkString(" * ") + ")"
+    case Number(n) => n.toString
+    case Power(base, exp) => "(" + outputMath(base) + "**" + outputMath(exp) + ")"
+    case BinaryTreeApplication(op, lhs, rhs) => s"(${outputMath(lhs)} ${op.toString} ${outputMath(rhs)})"
+    case CasFunctionApplication(function, args) => function.toString match {
+      case "==" => outputMath(args.head) + " == " + outputMath(args.last)
+      case ">" => outputMath(args.head) + " > " + outputMath(args.last)
+    }
   }
 
   def mbBracket(blah: List[String]) = {

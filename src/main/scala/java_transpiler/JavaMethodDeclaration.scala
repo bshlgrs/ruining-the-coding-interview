@@ -15,15 +15,17 @@ case class JavaMethodDeclaration(name: String,
                                  args: List[(String, JavaType)],
                                  body: List[JavaStatement]) {
 
-  def modifyWithAstModifier(astModifier: AstModifier): JavaMethodDeclaration = ???
+  def modifyWithAstModifier(astModifier: AstModifier): JavaMethodDeclaration = {
+    JavaMethodDeclaration(name, returnType, isStatic, args, body.flatMap(astModifier.applyToStmt))
+  }
 
   def querify(c: JavaContext): JavaMethodDeclaration = {
     this.copy(body = body.map(_.querify(c)))
   }
 
-  def queries(): List[UnorderedQuery] = body.flatMap(_.descendantExpressions).collect({
+  def queries(): Set[UnorderedQuery] = body.flatMap(_.descendantExpressions).collect({
     case UnorderedQueryApplication(q) => q
-  })
+  }).toSet
 
   lazy val descendantExpressions: List[JavaExpressionOrQuery] = body.flatMap(_.descendantExpressions)
   lazy val descendantStatements: List[JavaStatement] = body.flatMap(_.descendantStatements)
@@ -41,7 +43,10 @@ case class JavaMethodDeclaration(name: String,
 
 case class JavaConstructorDeclaration(args: List[(String, JavaType)],
                                       body: List[JavaStatement]) {
-  def modifyWithAstModifier(astModifier: AstModifier): JavaConstructorDeclaration = ???
+  def modifyWithAstModifier(astModifier: AstModifier): JavaConstructorDeclaration = {
+    JavaConstructorDeclaration(args, body.flatMap(astModifier.applyToStmt))
+
+  }
 }
 
 object JavaMethodDeclaration {

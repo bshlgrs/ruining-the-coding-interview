@@ -1,6 +1,6 @@
 package java_transpiler.queries
 
-import java_transpiler.{JavaLambdaExpr, JavaExpressionOrQuery, JavaExpression}
+import java_transpiler.{AstModifier, JavaLambdaExpr, JavaExpressionOrQuery, JavaExpression}
 
 import ast_renderers.RubyOutputter
 import cas.MathExp
@@ -10,8 +10,14 @@ case class Reduction(start: JavaExpressionOrQuery,
                      reducer: Reducer) {
   lazy val freeVariables: Set[String] = start.freeVariables ++ mapper.freeVariables ++ reducer.freeVariables
 
-  def toReasonableString(): String = {
-    s"Reduction[${RubyOutputter.outputExpression(start)}, ${mapper.toReasonableString()}, ${reducer.toReasonableString()}]"
+  override def toString: String = {
+    s"Reduction[${RubyOutputter.outputExpression(start)}, $mapper, $reducer]"
+  }
+
+  def modify(modifier: AstModifier): Reduction = {
+    Reduction(modifier.applyToExpr(start),
+      mapper.copy(body = modifier.applyToExpr(mapper.body)),
+      reducer.copy(body = modifier.applyToExpr(reducer.body)))
   }
 }
 
@@ -41,13 +47,13 @@ object Reduction {
 case class Mapper(arg: String, body: JavaExpressionOrQuery) {
   lazy val freeVariables = body.freeVariables - arg
 
-  def toReasonableString(): String = s"($arg -> ${RubyOutputter.outputExpression(body)})"
+  override def toString: String = s"($arg -> ${RubyOutputter.outputExpression(body)})"
 }
 
 case class Reducer(arg1: String, arg2: String, body: JavaExpressionOrQuery) {
   lazy val freeVariables = body.freeVariables - arg1 - arg2
 
-  def toReasonableString(): String = s"($arg1, $arg2 -> ${RubyOutputter.outputExpression(body)})"
+  override def toString: String = s"($arg1, $arg2 -> ${RubyOutputter.outputExpression(body)})"
 }
 
 

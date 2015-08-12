@@ -1,0 +1,4 @@
+run
+run 8
+run useful_data_structures.Optimizer
+run ../example.java

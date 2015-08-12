@@ -28,14 +28,16 @@ case class UnorderedQuery(
 //        this.head(context)
       case ("reduce", List(start, map, reducer)) =>
         this.reduce(start, map, reducer, context)
-      case ("sum", List()) =>
-        this.sum(context)
+      case ("sum", List(map)) =>
+        this.sum(map, context)
+      case ("count", List()) =>
+        this.count(context)
       case (_, _) => JavaMethodCall(UnorderedQueryApplication(this), methodName, args)
     }
   }
 
   def filter(arg: JavaExpressionOrQuery, context: JavaContext): JavaExpressionOrQuery = {
-    val thisClause = List(WhereClause.build(arg, context))
+    val thisClause = List(WhereClause.build(arg))
 
     this match {
       case UnorderedQuery(_, _, None, None) =>
@@ -65,7 +67,7 @@ case class UnorderedQuery(
     }
   }
 
-  def sum(context: JavaContext) = {
+  def sum(map: JavaExpressionOrQuery, context: JavaContext) = {
     val identityOnNumber = JavaLambdaExpr(List("x" -> JavaIntType), JavaVariable("x"))
     val sumOnNumber = JavaLambdaExpr(List("x" -> JavaIntType, "y" -> JavaIntType),
       JavaExpression.parse("x + y"))
@@ -74,7 +76,20 @@ case class UnorderedQuery(
       case UnorderedQuery(_, _, _, None) =>
         UnorderedQueryApplication(
           UnorderedQuery(source, whereClauses, limiter, Some(
-            Reduction.build(JavaMath(Number(0)), identityOnNumber, sumOnNumber, context))))
+            Reduction.build(JavaMath(Number(0)), map, sumOnNumber, context))))
+    }
+  }
+
+  def count(context: JavaContext) = {
+    val constOneOnNumber = JavaLambdaExpr(List("x" -> JavaIntType), JavaMath(Number(1)))
+    val sumOnNumber = JavaLambdaExpr(List("x" -> JavaIntType, "y" -> JavaIntType),
+      JavaExpression.parse("x + y"))
+
+    this match {
+      case UnorderedQuery(_, _, _, None) =>
+        UnorderedQueryApplication(
+          UnorderedQuery(source, whereClauses, limiter, Some(
+            Reduction.build(JavaMath(Number(0)), constOneOnNumber, sumOnNumber, context))))
     }
   }
 
