@@ -8,12 +8,12 @@ import cas.{Number, Name}
 case class UnorderedQuery(
             source: JavaExpressionOrQuery,
             whereClauses: List[WhereClause],
-            limiter: Option[LimitByClause],
-            reduction: Option[Reduction]) {
+            mbLimiter: Option[LimitByClause],
+            mbReduction: Option[Reduction]) {
 
   lazy val targetIsMagic: Boolean = source.isInstanceOf[JavaVariable]
 
-  val parameters = whereClauses.flatMap(_.freeVariables)++ limiter.map(_.freeVariables) ++ reduction.map(_.freeVariables)
+  val parameters = whereClauses.flatMap(_.freeVariables)++ mbLimiter.map(_.freeVariables) ++ mbReduction.map(_.freeVariables)
 
   def childrenExpressions(): List[JavaExpressionOrQuery] = {
     whereClauses.flatMap(_.childrenExpressions())
@@ -63,7 +63,7 @@ case class UnorderedQuery(
     this match {
       case UnorderedQuery(_, _, _, None) =>
         UnorderedQueryApplication(
-          UnorderedQuery(source, whereClauses, limiter, Some(Reduction.build(start, map, reducer, context))))
+          UnorderedQuery(source, whereClauses, mbLimiter, Some(Reduction.build(start, map, reducer, context))))
     }
   }
 
@@ -75,7 +75,7 @@ case class UnorderedQuery(
     this match {
       case UnorderedQuery(_, _, _, None) =>
         UnorderedQueryApplication(
-          UnorderedQuery(source, whereClauses, limiter, Some(
+          UnorderedQuery(source, whereClauses, mbLimiter, Some(
             Reduction.build(JavaMath(Number(0)), map, sumOnNumber, context))))
     }
   }
@@ -88,7 +88,7 @@ case class UnorderedQuery(
     this match {
       case UnorderedQuery(_, _, _, None) =>
         UnorderedQueryApplication(
-          UnorderedQuery(source, whereClauses, limiter, Some(
+          UnorderedQuery(source, whereClauses, mbLimiter, Some(
             Reduction.build(JavaMath(Number(0)), constOneOnNumber, sumOnNumber, context))))
     }
   }
@@ -99,11 +99,31 @@ case class UnorderedQuery(
 //        UnorderedQuery(source, whereClauses, Some(LimitByClause.build(JavaLambdaExpr(List"x", JavaUnit), JavaMath(Number(1)), context)), None))
 //  }
 
-  def toJavaExpression: JavaExpression = {
+  def toTrivialJavaExpression: JavaExpressionOrQuery = {
     val afterWhere = whereClauses.foldLeft(source) { (x: JavaExpressionOrQuery, y: WhereClause) =>
       JavaMethodCall(x, "select", List(y.toJavaLambdaExpression))
     }
 
+    val afterLimit = mbLimiter match {
+      case Some(limiter) => {
+        JavaMethodCall(
+          JavaMethodCall(afterWhere, "sort_by", List(limiter.orderingFunction)),
+          "take",
+          List(limiter.orderingFunction))
+      }
+      case None => afterWhere
+    }
+
+    mbReduction match {
+      case Some(reduction) => {
+        JavaMethodCall(
+          JavaMethodCall(afterLimit, "map", List(reduction.mapper.asJavaLambda)),
+          "inject",
+          List(reduction.start, reduction.reducer.asJavaLambda)
+        )
+      }
+      case None => afterLimit
+    }
   }
 }
 

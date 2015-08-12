@@ -1,6 +1,6 @@
 package java_transpiler.queries
 
-import java_transpiler.{AstModifier, JavaLambdaExpr, JavaExpressionOrQuery, JavaExpression}
+import java_transpiler._
 
 import ast_renderers.RubyOutputter
 import cas.MathExp
@@ -48,12 +48,16 @@ case class Mapper(arg: String, body: JavaExpressionOrQuery) {
   lazy val freeVariables = body.freeVariables - arg
 
   override def toString: String = s"($arg -> ${RubyOutputter.outputExpression(body)})"
+
+  def asJavaLambda: JavaLambdaExpr = JavaLambdaExpr(List(arg -> JavaIntType), body)
 }
 
 case class Reducer(arg1: String, arg2: String, body: JavaExpressionOrQuery) {
   lazy val freeVariables = body.freeVariables - arg1 - arg2
 
   override def toString: String = s"($arg1, $arg2 -> ${RubyOutputter.outputExpression(body)})"
+
+  def asJavaLambda: JavaLambdaExpr = JavaLambdaExpr(List(arg1 -> JavaIntType, arg2 -> JavaIntType), body)
 }
 
 

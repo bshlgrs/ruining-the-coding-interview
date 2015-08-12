@@ -9,7 +9,7 @@ import helpers.VariableNameGenerator
 object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
   case class MonoidMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
     val whereClauses: List[WhereClause] = query.whereClauses
-    val reduction = query.reduction.get
+    val reduction = query.mbReduction.get
 
     val variableName = VariableNameGenerator.getVariableName()
     val methodName = s"get_$variableName"

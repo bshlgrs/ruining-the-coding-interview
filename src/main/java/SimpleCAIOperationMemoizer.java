@@ -29,7 +29,7 @@ public class SimpleCAIOperationMemoizer {
     void afterInsert() {}
 
     BigO timeForQuery(UnorderedQuery query) {
-      if (query.reduction() == null) {
+      if (query.mbReduction() == null) {
           return Logarithmic.time();
       } else {
           return null;

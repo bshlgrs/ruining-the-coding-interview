@@ -9,7 +9,7 @@ case class QueryActualizer(auxiliaryStructures: Map[UnorderedQuery, Option[Usefu
     case UnorderedQueryApplication(query) =>
       auxiliaryStructures.get(query).flatten match {
         case Some(structure) => structure.queryCode
-        case None => JavaVariable("SHIT_SHIT_SHIT")
+        case None => query.toTrivialJavaExpression
       }
     case JavaMethodCall(JavaVariable(callee), "insert", args) =>
       if (javaClass.magicMultisets.keys.toSet.contains(callee))
