@@ -35,16 +35,6 @@ Here’s the only problem. My adventures into automatically generating data stru
 
 So for now, I’m not trying to improve programming. I just want to ruin the coding interview.
 
-### Moving "common things" to the "outside"
-
-So I mentioned above that optimizing compilers will move computations out of inner loops whenever possible.
-
-As I said above, this is similar to the decision you're making when you decide to store your data as a binary search tree instead of a linked list. It takes longer upfront, but then it will be faster to make repeated queries. And another example is dynamic programming algorithms. (You can often look at a dynamic programming algorithm as a special kind of data structure that can only answer queries once, and can only answer them when asked in a particular order.)
-
-Here's a less obvious similarity: In math, we often want to factorize `x * y + x * z` to `x * (y + z)`, because the latter tree has a variety of nicer properties and lets us solve the equation more easily. A large part of this project has been trying to make a computer algebra system which does this kind of thing.
-
-This theme has come up several times in this project, so I'm sure it's important.
-
 
 ## Data structure optimizer
 
