@@ -9,13 +9,13 @@ import useful_data_structures.{UsefulDataStructureHelper, UsefulUnorderedDataStr
 
 object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
   case class MonoidMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
-    val whereClauses: List[WhereClause] = query.whereClauses
+    val whereClauses: Set[WhereClause] = query.whereClauses
     val reduction = query.mbReduction.get
 
     val variableName = VariableNameGenerator.getVariableName()
     val methodName = s"get_$variableName"
 
-    lazy val onInsert: Option[List[JavaStatement]] = {
+    lazy val insertionFragment: Option[List[JavaStatement]] = {
       val mapper = reduction.mapper
 
       val variableMap = Map(
@@ -25,12 +25,10 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
 
       val body = reduction.reducer.useBody(variableMap)
 
-      val assignment = ExpressionStatement(JavaAssignmentExpression(variableName, false, body))
-
-      UsefulDataStructureHelper.wrapInConstantWheres(whereClauses, List(assignment))
+      Some(List(ExpressionStatement(JavaAssignmentExpression(variableName, false, body))))
     }
 
-    def onDelete = None
+    def removalFragment = None
 
     def fields = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
 

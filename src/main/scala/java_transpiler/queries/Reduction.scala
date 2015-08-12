@@ -63,5 +63,3 @@ case class Reducer(arg1: String, arg2: String, body: JavaExpressionOrQuery) {
 
   def useBody(map: Map[String, JavaExpressionOrQuery]): JavaExpressionOrQuery = body.replaceVariables(map)
 }
-
-

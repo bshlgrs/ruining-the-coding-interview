@@ -35,13 +35,51 @@ Here’s the only problem. My adventures into automatically generating data stru
 
 So for now, I’m not trying to improve programming. I just want to ruin the coding interview.
 
+### Moving "common things" to the "outside"
+
+So I mentioned above that optimizing compilers will move computations out of inner loops whenever possible.
+
+As I said above, this is similar to the decision you're making when you decide to store your data as a binary search tree instead of a linked list. It takes longer upfront, but then it will be faster to make repeated queries. And another example is dynamic programming algorithms. (You can often look at a dynamic programming algorithm as a special kind of data structure that can only answer queries once, and can only answer them when asked in a particular order.)
+
+Here's a less obvious similarity: In math, we often want to factorize `x * y + x * z` to `x * (y + z)`, because the latter tree has a variety of nicer properties and lets us solve the equation more easily. A large part of this project has been trying to make a computer algebra system which does this kind of thing.
+
+This theme has come up several times in this project, so I'm sure it's important.
+
+
 ## Data structure optimizer
 
 Okay, so how are we going to do this?
 
+For the moment, I'm only going to talk you through how I'm doing this for unordered data structures, because they're simpler and I've done more work implementing them.
+
 (I’ve ended up with this project compiling Java to Ruby. You might point out that this is kind of weird for a Scala project, and you’d be right. One reason I’m currently going Java to Ruby is that Java has explicit types, which makes it easier for me to reason about, and Ruby doesn’t, which makes it easier for me to output it.)
 
-Here’s an example of a simple Java class. It stores a list of people. You can add people to it, and whenever you want you can ask it to tell you the average income of people who are older than fifty:
+Choosing the data structures happens over several stages, just like a normal compiler. I'll walk you through how they fit together.
+
+But first, what exactly do I mean by a "data structure"? Here are a few examples:
+
+* If you want to store the total income of everyone who is in your collection, you can just store a single field with the total, and you can increase this by the income of the new person whenever someone is added, and you can decrease it by the income of the new person whenever someone is removed.
+* You can put all of the people in your collection in a binary search tree ordered by income. Every time someone is added to your main collection, you insert them into this BST, and every time someone is removed, you remove them.
+* If you don't need to be able to remove people, you could have a min heap with the ten richest users stored in it. Whenever you try to insert a new user, you see if they're richer than the root of the min heap, and if so you insert them into the heap.
+
+So the essence of what I mean by "data structure" has:
+
+* some fields, where it stores a nice representation of some part of your data
+* if it allows insertion, some code which needs to get executed when you insert a new item
+* if it allows removal, some code which needs to get executed when you remove an item
+* some code that should be called to get the answer to queries.
+
+Each of these corresponds to a method of the `UsefulUnorderedDataStructure` class:
+
+    abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
+      def insertionFragment: Option[List[JavaStatement]]
+      def removalFragment: Option[List[JavaStatement]]
+      def fields: List[JavaFieldDeclaration]
+      def queryCode: JavaExpressionOrQuery
+    }
+
+
+Okay, so here’s an example of a simple Java class. It stores a list of people. You can add people to it, and whenever you want you can ask it to tell you the average income of people who are older than fifty:
 
     public class Example  {
         class Person {
@@ -71,59 +109,253 @@ Here’s an example of a simple Java class. It stores a list of people. You can 
 
 (This example totally works, by the way.)
 
-to be continuted
+If we naively translate this to Ruby, by using the unoptimizing Java to Ruby transpiler in this code, we end up with the following Ruby:
+
+    class Example
+      class Person
+        def initialize(age, income)
+          @age = age
+
+          @income = income
+        end
+      end
+
+      def initialize
+        @stuff = MagicMultiset.new
+      end
+
+      def getAverageIncomeOfOverFifties
+        totalIncome = stuff.select(->(x) { x.age > 50 }).map(->(x) { x.income }).inject(0, ->(x, y) { (x + y) })
+        numberOfPeople = stuff.select(->(x) { x.age > 50 }).map(->(_x) { 1 }).inject(0, ->(x, y) { (x + y) })
+
+        (totalIncome * (numberOfPeople**-1))
+      end
+
+      def insertPerson(age, income)
+        insertInto_stuff(age, income)
+      end
+
+      def insertInto_stuff(age, income)
+        @stuff.insert(age, income)
+      end
+    end
+
+With that implementation, `getAverageIncomeOfOverFifties` takes linear time. We can do better.
+
+Here's the main method of my project, in `Optimizer.scala`:
+
+    def main(args: Array[String]) {
+      val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/example.java")).getLines().mkString("\n")
+
+      val javaClass = JavaParserWrapper.parseJavaClassToAst(javaSource)
+
+      val optimizedClass = optimize(javaClass)
+
+      val rubyCode = RubyOutputter.outputClass(optimizedClass)
+
+      println(rubyCode)
+    }
+
+So we get a file, parse it to Java, optimize it, then output the class to Ruby. This pipeline is attractive to me because it suggests that it should be easy to output to other languages than Ruby.
+
+Nothing that exciting happens in the `JavaParserWrapper.parseJavaClassToAst` method, except me tearing my hair out over all the `null`s in the Java library I'm interfacing with. And the `RubyOutputter.outputClass` method is marginally interesting, but not the focus of this project. So let's look at how the `Optimizer.optimize` method works:
+
+
+    def optimize(jc: JavaClass): JavaClass = {
+      val querified = jc.querify()
+
+      val auxiliaryDataStructures = querified.queries().map({ (x) =>
+        x -> UnorderedDataStructureLibrary.getBestStructureForClass(x, querified)
+      }).toMap
+
+      querified.actualizeQueries(auxiliaryDataStructures)
+    }
+
+### Querification
+
+In the first stage of the process, we take lines like
+
+    stuff.filter(x -> x.age > 50).sum(x -> x.income)
+
+and convert them into something pretty similar to SQL queries--that expression might look like
+
+    SELECT SUM(income) FROM stuff WHERE age > 50
+
+SQL-style queries have a bunch of nice properties. For example, we might want to observe that `list.filter(predicate1).filter(predicate2)` is the same as `list.filter(predicate2).filter(predicate1)`. The process of converting these expressions to specialised `UnorderedQuery` objects (as defined in `UnorderedQuery.scala`) allows this kind of logic to happen.
+
+So that's what the `querify` method does. Here's an, uh, artist's impression of what our Java class looks like after querification:
+
+    class Example
+      class Person
+        def initialize(age, income)
+          @age = age
+
+          @income = income
+        end
+      end
+
+      def initialize
+        @stuff = MagicMultiset.new
+      end
+
+      def getAverageIncomeOfOverFifties
+        totalIncome = UnorderedQuery(JavaVariable(stuff),Set(WhereClause(x -> x.age > 50)),None,Some(Reduction[0, (x -> x.income), (x, y -> (x + y))]))
+        numberOfPeople = UnorderedQuery(JavaVariable(stuff),Set(WhereClause(x,JavaFieldAccess(JavaVariable(x),age),JavaMath(50),false)),None,Some(Reduction[0, (x -> 1), (x, y -> (x + y))]))
+
+        (totalIncome * (numberOfPeople**-1))
+      end
+
+      def insertPerson(age, income)
+        stuff.insert(age, income)
+      end
+    end
+
+
+### Finding auxiliary data structures
+
+Now that we've got all the queries we want our data sets to be able to quickly answer, we need to choose appropriate data structures.
+
+To do this, we need to pay attention to the modification methods which are being called on our data structures, because there are some data structures which you can use only on immutable sets, and some which allow insertion but not removal, and some which allow both.
+
+For example, if we want to keep track of the minimum age of a person in our data structure and we didn't allow removal, we'd just store the minimum age we'd seen so far, and then update it whenever we saw a younger person. Sadly, this doesn't work if we're allowed to remove people: after the youngest person is removed, you need to linear search for the next youngest person. If you need removal in this situation, you'd probably want to be using a heap.
+
+The auxiliary data structures are chosen by the `UnorderedDataStructureLibrary`. Here's how this works:
+
+    helpfulStructures
+      .flatMap { _.tryToCreate(query) }
+      .filter(_._1.insertionFragment.isDefined || ! requiresInsert)
+      .filter(_._1.removalFragment.isDefined || ! requiresDelete)
+      .sortBy(_._2)
+      .headOption
+      .map(_._1)
+
+We start out with the list of all the data structures we know about.
+
+`tryToCreate` tries to initialize the data structure with a given query, and if successful returns data structure and the Big O complexity which the query will take using that structure. If the query is wildly inappropriate for the data structure, like trying to use a frequency histogram to store an average, it returns None.
+
+Next, if we need to be able to insert, we filter out the data structures which can't deal with insertion. Same with removal.
+
+Next, we sort by the Big O complexity which the data structure needs to run a given query.
+
+Finally, we take the head of this list and throw away the time complexity.
+
+In our running example, we end up with two separate `MonoidMemoizer`s, one to store the running total of income for people older than 50 and one to store the running count of people older than 50.
+
+
+### Actualizing queries
+
+Now, we need to turn our queries into actual Java method calls. This basically works by mapping over the Java class and looking for queries, then turning each query into the right code.
+
+We also make, if required, an insertion and/or removal method for each multiset we're dealing with. This just involves concatenating all of the auxiliary data structures' insertion and removal code into one method. The logic for this lives in the `MagicMultiset` class.
+
+And that's the optimization done. Here's the final Ruby output:
+
+    class Example
+      class Person
+        def initialize(age, income)
+          @age = age
+
+          @income = income
+        end
+      end
+
+      def initialize
+        @stuff = MagicMultiset.new
+      end
+
+      def getAverageIncomeOfOverFifties
+        totalIncome = @foo
+        numberOfPeople = @bar
+
+        (totalIncome * (numberOfPeople**-1))
+      end
+
+      def insertPerson(age, income)
+        insertInto_stuff(age, income)
+      end
+
+      def insertInto_stuff(age, income)
+        @foo = (@foo + item.income)
+        @bar = (@bar + 1)
+
+        @stuff.insert(age, income)
+      end
+    end
+
+## Where this project is, and where it is going
+
+I plan to work on this pretty much all the time I'm not at my real job or sleeping until my presentation at Scala By The Bay on Saturday. So the level of progress now is hopefully pretty different to where it will be on Saturday.
+
+I have a lot of work left to do.
+
+- One of the components in this project is a computer algebra system (you can see it in the `cas` package). I've put a lot of time into that component, and probably need to put a lot more in. In particular, its solving abilities are currently embarrasingly limited.
+- There should be an `OrderedQuery` class as well as an `UnorderedQuery` class, to make my system able to answer questions about arrays and stacks and queues etc.
+- I want to write more implementations of "useful data structures".
+- I want to make my outputter target more languages.
+- Instead of choosing auxiliary data structures based on Big O complexity, this system should choose them based on a numerical estimate of query time.
+- Automatic benchmarking! Automatic unit testing!
+- I want to put automatic dynamic programming in here too
+
+The system is working with the shape I intend it to. It's at least a proof of concept.
+
+Ruining the coding interview will be hard, but I think I have a shot.
+
+## Contributing
+
+I'm interested in getting people to help me with this. Things are currently changing too fast for me to reasonably expect anyone else to be able to do anything. Eventually I'll come up with a way to make it easier for people to help me.
 
 ## Information on the code
 
     $ find . -name '*.scala' | xargs wc -l | sort -r
-        2876 total
-         325 ./src/main/scala/cas/MathExp.scala
-         247 ./src/main/scala/cas/BinaryOperatorApplications.scala
-         157 ./src/main/scala/java_transpiler/JavaExpression.scala
-         133 ./src/main/scala/java_transpiler/queries/UnorderedQuery.scala
-         131 ./src/test/scala/cas/ExpressionTests.scala
-         130 ./src/main/scala/ast_renderers/RubyOutputter.scala
-         125 ./src/main/scala/java_transpiler/JavaClass.scala
-          94 ./src/main/scala/cas/CasBinaryOperator.scala
-          93 ./src/main/scala/java_transpiler/queries/WhereClause.scala
-          91 ./src/main/scala/java_transpiler/JavaStatement.scala
-          89 ./src/main/scala/java_transpiler/JavaMethodDeclaration.scala
-          86 ./src/main/scala/java_parser/JavaParserWrapper.scala
-          83 ./src/test/scala/cas/GenericExpressionTests.scala
-          80 ./src/main/scala/java_transpiler/JavaType.scala
-          73 ./src/main/scala/big_o/BigO.scala
-          65 ./src/main/scala/data_structure_handlers/TestLoadingJavaDataStructure.scala
-          63 ./src/main/scala/java_transpiler/queries/Reduction.scala
-          63 ./src/main/scala/java_transpiler/AstModifier.scala
-          57 ./src/main/scala/useful_data_structures/MonoidMemoizerFactory.scala
-          56 ./src/main/scala/java_transpiler/queries/LimitByClause.scala
-          56 ./src/main/scala/java_transpiler/MagicMultiset.scala
-          42 ./src/main/scala/data_structure_handlers/GenericDataStructureForMultiset.scala
-          37 ./src/main/scala/cas/DodgierCasFunction.scala
-          36 ./src/main/scala/java_transpiler/JavaMathHelper.scala
-          36 ./src/main/scala/java_parser/JavaToAst.scala
-          34 ./src/main/scala/ruby_to_ast/RubyParserTester.scala
-          31 ./src/main/scala/useful_data_structures/Optimizer.scala
-          31 ./src/main/scala/java_transpiler/JavaExpressionOrQuery.scala
-          30 ./src/main/scala/useful_data_structures/UsefulUnorderedDataStructure.scala
-          30 ./src/main/scala/useful_data_structures/UnorderedDataStructureLibrary.scala
-          28 ./src/main/scala/java_transpiler/JavaFieldDeclaration.scala
-          26 ./src/main/scala/java_transpiler/QueryActualizer.scala
-          25 ./src/test/scala/java_transpiler/JavaMethodParsingSpecs.scala
-          25 ./src/main/scala/cas/Multiset.scala
-          20 ./src/main/scala/data_structure_handlers/ChimeraMultisetClass.scala
-          19 ./src/main/scala/data_structure_handlers/MutatingMethodImplementation.scala
-          18 ./src/main/scala/helpers/UnorderedPair.scala
-          17 ./src/main/scala/external_interfaces/ExternalInterfaces.scala
-          12 ./src/main/scala/java_transpiler/queries/OrderByClause.scala
-          12 ./src/main/scala/java_transpiler/AstBuilder.scala
-          12 ./src/main/scala/helpers/VariableNameGenerator.scala
-          10 ./src/main/scala/generic_expression_ast/ExpressionAst.scala
-           7 ./src/main/scala/ruby_to_ast/RubyMethodDeclaration.scala
-           7 ./src/main/scala/ruby_to_ast/RubyDataStructureClass.scala
-           7 ./src/main/scala/java_transpiler/queries/JavaContext.scala
-           7 ./src/main/scala/java_transpiler/JavaBinaryOperator.scala
-           5 ./src/main/scala/ruby_to_ast/RubyExpression.scala
-           5 ./src/main/scala/java_transpiler/VariableScopeDetails.scala
-           5 ./src/main/scala/java_transpiler/InternalTypeError.scala
-           5 ./src/main/scala/cas/Name.scala
+          2929 total
+           327 ./src/main/scala/cas/MathExp.scala
+           247 ./src/main/scala/cas/BinaryOperatorApplications.scala
+           157 ./src/main/scala/java_transpiler/JavaExpression.scala
+           141 ./src/main/scala/java_transpiler/queries/UnorderedQuery.scala
+           131 ./src/test/scala/cas/ExpressionTests.scala
+           130 ./src/main/scala/ast_renderers/RubyOutputter.scala
+           125 ./src/main/scala/java_transpiler/JavaClass.scala
+            99 ./src/main/scala/java_transpiler/queries/WhereClause.scala
+            94 ./src/main/scala/cas/CasBinaryOperator.scala
+            91 ./src/main/scala/java_transpiler/JavaStatement.scala
+            89 ./src/main/scala/java_transpiler/JavaMethodDeclaration.scala
+            83 ./src/test/scala/cas/GenericExpressionTests.scala
+            80 ./src/main/scala/java_transpiler/JavaType.scala
+            73 ./src/main/scala/big_o/BigO.scala
+            65 ./src/main/scala/java_transpiler/queries/Reduction.scala
+            65 ./src/main/scala/data_structure_handlers/TestLoadingJavaDataStructure.scala
+            63 ./src/main/scala/java_transpiler/AstModifier.scala
+            56 ./src/main/scala/java_transpiler/queries/LimitByClause.scala
+            56 ./src/main/scala/java_transpiler/MagicMultiset.scala
+            53 ./src/main/scala/java_parser/JavaParserWrapper.scala
+            49 ./src/main/scala/useful_data_structures/data_structure_library/PriorityQueueFactory.scala
+            48 ./src/main/scala/useful_data_structures/data_structure_library/MonoidMemoizerFactory.scala
+            42 ./src/main/scala/data_structure_handlers/GenericDataStructureForMultiset.scala
+            39 ./src/main/scala/Optimizer.scala
+            37 ./src/main/scala/cas/DodgierCasFunction.scala
+            36 ./src/main/scala/java_transpiler/JavaMathHelper.scala
+            36 ./src/main/scala/java_parser/JavaToAst.scala
+            34 ./src/main/scala/ruby_to_ast/RubyParserTester.scala
+            31 ./src/main/scala/useful_data_structures/UnorderedDataStructureLibrary.scala
+            31 ./src/main/scala/java_transpiler/JavaExpressionOrQuery.scala
+            30 ./src/main/scala/useful_data_structures/UsefulDataStructureHelper.scala
+            29 ./src/main/scala/useful_data_structures/UsefulUnorderedDataStructure.scala
+            28 ./src/main/scala/java_transpiler/JavaFieldDeclaration.scala
+            26 ./src/main/scala/java_transpiler/QueryActualizer.scala
+            25 ./src/test/scala/java_transpiler/JavaMethodParsingSpecs.scala
+            25 ./src/main/scala/cas/Multiset.scala
+            20 ./src/main/scala/data_structure_handlers/ChimeraMultisetClass.scala
+            19 ./src/main/scala/data_structure_handlers/MutatingMethodImplementation.scala
+            18 ./src/main/scala/helpers/UnorderedPair.scala
+            17 ./src/main/scala/external_interfaces/ExternalInterfaces.scala
+            12 ./src/main/scala/java_transpiler/queries/OrderByClause.scala
+            12 ./src/main/scala/java_transpiler/AstBuilder.scala
+            12 ./src/main/scala/helpers/VariableNameGenerator.scala
+             7 ./src/main/scala/ruby_to_ast/RubyMethodDeclaration.scala
+             7 ./src/main/scala/ruby_to_ast/RubyDataStructureClass.scala
+             7 ./src/main/scala/java_transpiler/queries/JavaContext.scala
+             7 ./src/main/scala/java_transpiler/JavaBinaryOperator.scala
+             5 ./src/main/scala/ruby_to_ast/RubyExpression.scala
+             5 ./src/main/scala/java_transpiler/VariableScopeDetails.scala
+             5 ./src/main/scala/java_transpiler/InternalTypeError.scala
+             5 ./src/main/scala/cas/Name.scala

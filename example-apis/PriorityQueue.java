@@ -12,7 +12,7 @@ public class PriorityQueue  {
     MagicMultiset<Item> queue = new MagicMultiset<Item>();
 
     int insertItem(int id, int priority) {
-        stuff.insert(id, priority);
+        queue.insert(id, priority);
     }
 
     Item getCheapest() {
@@ -21,7 +21,7 @@ public class PriorityQueue  {
 
     void popCheapest() {
         Item cheapest = getCheapest();
-        stuff.remove(cheapest);
+        queue.remove(cheapest);
         return cheapest;
     }
 

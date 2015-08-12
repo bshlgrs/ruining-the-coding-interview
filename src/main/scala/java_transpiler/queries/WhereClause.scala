@@ -10,7 +10,13 @@ case class WhereClause(
                   isEqualsInsteadOfGreaterThan: Boolean) {
 
   val constantWhereClause = ConstantWhereClause.build(this)
+  val isConstant = constantWhereClause.isDefined
+
   val separableWhereClause = SeparableWhereClause.build(this)
+  val isSeparable = separableWhereClause.isDefined
+
+  // just checking I haven't screwed up...
+  assert(isSeparable || ! isConstant, s"a where clause ($this) is allegedly not separable but constant")
 
   def childrenExpressions(): List[JavaExpressionOrQuery] = {
     List(lhs, rhs)

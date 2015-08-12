@@ -7,18 +7,16 @@ import cas.{Number, Name}
 
 case class UnorderedQuery(
             source: JavaExpressionOrQuery,
-            whereClauses: List[WhereClause],
+            whereClauses: Set[WhereClause],
             mbLimiter: Option[LimitByClause],
             mbReduction: Option[Reduction]) {
 
   lazy val targetIsMagic: Boolean = source.isInstanceOf[JavaVariable]
 
-
-
   val parameters = whereClauses.flatMap(_.freeVariables)++ mbLimiter.map(_.freeVariables) ++ mbReduction.map(_.freeVariables)
 
   def childrenExpressions(): List[JavaExpressionOrQuery] = {
-    whereClauses.flatMap(_.childrenExpressions())
+    whereClauses.flatMap(_.childrenExpressions()).toList
   }
 
   val allowedMethods: Map[String, Int] = Map("head" -> 0)
@@ -46,7 +44,7 @@ case class UnorderedQuery(
   }
 
   def filter(arg: JavaExpressionOrQuery, context: JavaContext): JavaExpressionOrQuery = {
-    val thisClause = List(WhereClause.build(arg))
+    val thisClause = Set(WhereClause.build(arg))
 
     this match {
       case UnorderedQuery(_, _, None, None) =>
@@ -64,7 +62,7 @@ case class UnorderedQuery(
         UnorderedQueryApplication(
           UnorderedQuery(source, whereClauses, thisClause, None))
       case _ => UnorderedQueryApplication(
-        UnorderedQuery(UnorderedQueryApplication(this), Nil, thisClause, None))
+        UnorderedQuery(UnorderedQueryApplication(this), Set(), thisClause, None))
     }
   }
 
@@ -134,8 +132,10 @@ case class UnorderedQuery(
       case None => afterLimit
     }
   }
+
+  lazy val trickyWhereClauses = whereClauses.filter((x) => ! x.isConstant && ! x.isSeparable)
 }
 
 object UnorderedQuery {
-  def blank(source: JavaExpressionOrQuery) = UnorderedQuery(source, Nil, None, None)
+  def blank(source: JavaExpressionOrQuery) = UnorderedQuery(source, Set(), None, None)
 }

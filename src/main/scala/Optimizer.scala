@@ -10,17 +10,23 @@ object Optimizer {
   def optimize(jc: JavaClass): JavaClass = {
     val querified = jc.querify()
 
-    println(RubyOutputter.outputClass(querified))
-
     val auxiliaryDataStructures = querified.queries().map({ (x) =>
       x -> UnorderedDataStructureLibrary.getBestStructureForClass(x, querified)
     }).toMap
 
+    println(auxiliaryDataStructures)
+
     querified.actualizeQueries(auxiliaryDataStructures)
   }
 
+  def unoptimized(jc: JavaClass): JavaClass = {
+    val querified = jc.querify()
+
+    querified.actualizeQueries(Map())
+  }
+
   def main(args: Array[String]) {
-    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/PriorityQueue.java")).getLines().mkString("\n")
+    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/example.java")).getLines().mkString("\n")
 
     val javaClass = JavaParserWrapper.parseJavaClassToAst(javaSource)
 
