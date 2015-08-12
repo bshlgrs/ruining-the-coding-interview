@@ -72,3 +72,58 @@ Here’s an example of a simple Java class. It stores a list of people. You can 
 (This example totally works, by the way.)
 
 to be continuted
+
+## Information on the code
+
+    $ find . -name '*.scala' | xargs wc -l | sort -r
+        2876 total
+         325 ./src/main/scala/cas/MathExp.scala
+         247 ./src/main/scala/cas/BinaryOperatorApplications.scala
+         157 ./src/main/scala/java_transpiler/JavaExpression.scala
+         133 ./src/main/scala/java_transpiler/queries/UnorderedQuery.scala
+         131 ./src/test/scala/cas/ExpressionTests.scala
+         130 ./src/main/scala/ast_renderers/RubyOutputter.scala
+         125 ./src/main/scala/java_transpiler/JavaClass.scala
+          94 ./src/main/scala/cas/CasBinaryOperator.scala
+          93 ./src/main/scala/java_transpiler/queries/WhereClause.scala
+          91 ./src/main/scala/java_transpiler/JavaStatement.scala
+          89 ./src/main/scala/java_transpiler/JavaMethodDeclaration.scala
+          86 ./src/main/scala/java_parser/JavaParserWrapper.scala
+          83 ./src/test/scala/cas/GenericExpressionTests.scala
+          80 ./src/main/scala/java_transpiler/JavaType.scala
+          73 ./src/main/scala/big_o/BigO.scala
+          65 ./src/main/scala/data_structure_handlers/TestLoadingJavaDataStructure.scala
+          63 ./src/main/scala/java_transpiler/queries/Reduction.scala
+          63 ./src/main/scala/java_transpiler/AstModifier.scala
+          57 ./src/main/scala/useful_data_structures/MonoidMemoizerFactory.scala
+          56 ./src/main/scala/java_transpiler/queries/LimitByClause.scala
+          56 ./src/main/scala/java_transpiler/MagicMultiset.scala
+          42 ./src/main/scala/data_structure_handlers/GenericDataStructureForMultiset.scala
+          37 ./src/main/scala/cas/DodgierCasFunction.scala
+          36 ./src/main/scala/java_transpiler/JavaMathHelper.scala
+          36 ./src/main/scala/java_parser/JavaToAst.scala
+          34 ./src/main/scala/ruby_to_ast/RubyParserTester.scala
+          31 ./src/main/scala/useful_data_structures/Optimizer.scala
+          31 ./src/main/scala/java_transpiler/JavaExpressionOrQuery.scala
+          30 ./src/main/scala/useful_data_structures/UsefulUnorderedDataStructure.scala
+          30 ./src/main/scala/useful_data_structures/UnorderedDataStructureLibrary.scala
+          28 ./src/main/scala/java_transpiler/JavaFieldDeclaration.scala
+          26 ./src/main/scala/java_transpiler/QueryActualizer.scala
+          25 ./src/test/scala/java_transpiler/JavaMethodParsingSpecs.scala
+          25 ./src/main/scala/cas/Multiset.scala
+          20 ./src/main/scala/data_structure_handlers/ChimeraMultisetClass.scala
+          19 ./src/main/scala/data_structure_handlers/MutatingMethodImplementation.scala
+          18 ./src/main/scala/helpers/UnorderedPair.scala
+          17 ./src/main/scala/external_interfaces/ExternalInterfaces.scala
+          12 ./src/main/scala/java_transpiler/queries/OrderByClause.scala
+          12 ./src/main/scala/java_transpiler/AstBuilder.scala
+          12 ./src/main/scala/helpers/VariableNameGenerator.scala
+          10 ./src/main/scala/generic_expression_ast/ExpressionAst.scala
+           7 ./src/main/scala/ruby_to_ast/RubyMethodDeclaration.scala
+           7 ./src/main/scala/ruby_to_ast/RubyDataStructureClass.scala
+           7 ./src/main/scala/java_transpiler/queries/JavaContext.scala
+           7 ./src/main/scala/java_transpiler/JavaBinaryOperator.scala
+           5 ./src/main/scala/ruby_to_ast/RubyExpression.scala
+           5 ./src/main/scala/java_transpiler/VariableScopeDetails.scala
+           5 ./src/main/scala/java_transpiler/InternalTypeError.scala
+           5 ./src/main/scala/cas/Name.scala
