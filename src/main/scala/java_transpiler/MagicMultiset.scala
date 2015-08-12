@@ -8,10 +8,10 @@ case class MagicMultiset(itemClass: JavaClass, supportsInsert: Boolean, supports
   val itemType = itemClass.toType
 
   def modificationMethods(name: String,
-                          auxillaryDataStructures: Map[UnorderedQuery, Option[UsefulUnorderedDataStructure]]): List[JavaMethodDeclaration] = {
+                          auxiliaryDataStructures: Map[UnorderedQuery, Option[UsefulUnorderedDataStructure]]): List[JavaMethodDeclaration] = {
 
     val deleteMethod = if (supportsRemove) {
-      val removeBody = auxillaryDataStructures.collect({
+      val removeBody = auxiliaryDataStructures.collect({
         case (query, Some(dataStructure)) => query.source match {
           case JavaVariable(querySourceName) if name == querySourceName =>
             dataStructure.onRemove.get
@@ -31,7 +31,7 @@ case class MagicMultiset(itemClass: JavaClass, supportsInsert: Boolean, supports
       None
 
     val insertMethod = if (supportsInsert) {
-      val insertBody = auxillaryDataStructures.collect({
+      val insertBody = auxiliaryDataStructures.collect({
         case (query, Some(dataStructure)) => query.source match {
           case JavaVariable(querySourceName) if name == querySourceName =>
             dataStructure.onInsert.get

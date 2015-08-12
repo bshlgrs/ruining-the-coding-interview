@@ -29,6 +29,20 @@ abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
 
 //  def fieldFragments: List[(String, JavaType)]
 
+  lazy val separableEqualsWhereClauses: List[SeparableEqualityWhereClause] = {
+    val clauses = query.whereClauses.filter((x) => x.isEqualitySeparable && ! x.isConstant)
+    clauses.map(_.separableEqualityWhereClause.get).toList
+  }
+  
+  def getField(fieldName: String): JavaExpressionOrQuery = {
+    separableEqualsWhereClauses match {
+      case Nil => JavaFieldAccess(JavaThis, fieldName)
+      case _ => ???
+    }
+  }
+  
+  
+  
   def queryCode: JavaExpressionOrQuery
   def methodCode: Option[JavaMethodDeclaration]
 }
