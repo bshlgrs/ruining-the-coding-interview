@@ -27,6 +27,8 @@ case class WhereClause(
     WhereClause(newTarget, lhs.replaceVariables(map), rhs.replaceVariables(map), isEqualsInsteadOfGreaterThan)
   }
 
+  def toJavaLambdaExpression = JavaLambdaExpr(List(nodeVariableName -> JavaIntType), toJavaExpression)
+
   lazy val toJavaExpression: JavaExpression = {
     val op = if (isEqualsInsteadOfGreaterThan)
       niceFunctions.equals.equals[JavaExpressionOrQuery]

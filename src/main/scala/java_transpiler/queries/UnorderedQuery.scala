@@ -98,6 +98,13 @@ case class UnorderedQuery(
 //      UnorderedQueryApplication(
 //        UnorderedQuery(source, whereClauses, Some(LimitByClause.build(JavaLambdaExpr(List"x", JavaUnit), JavaMath(Number(1)), context)), None))
 //  }
+
+  def toJavaExpression: JavaExpression = {
+    val afterWhere = whereClauses.foldLeft(source) { (x: JavaExpressionOrQuery, y: WhereClause) =>
+      JavaMethodCall(x, "select", List(y.toJavaLambdaExpression))
+    }
+
+  }
 }
 
 
