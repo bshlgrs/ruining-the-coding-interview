@@ -10,6 +10,8 @@ object Optimizer {
   def optimize(jc: JavaClass): JavaClass = {
     val querified = jc.querify()
 
+    RubyOutputter.outputClass(querified)
+
     val auxiliaryDataStructures = querified.queries().map({ (x) =>
       x -> UnorderedDataStructureLibrary.getBestStructureForClass(x, querified)
     }).toMap
@@ -18,7 +20,7 @@ object Optimizer {
   }
 
   def main(args: Array[String]) {
-    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/example.java")).getLines().mkString("\n")
+    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/PriorityQueue.java")).getLines().mkString("\n")
 
     val javaClass = JavaParserWrapper.parseJavaClassToAst(javaSource)
 
