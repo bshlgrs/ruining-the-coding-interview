@@ -88,9 +88,9 @@ object ConstantWhereClause {
 case object SeparableInequalityWhereClause {
   def build(whereClause: WhereClause): Option[SeparableInequalityWhereClause] = {
     if (!whereClause.isEqualsInsteadOfGreaterThan)
-      if (whereClause.lhs.freeVariables == Set())
+      if (whereClause.lhs.freeVariables - whereClause.nodeVariableName == Set())
         Some(SeparableInequalityWhereClause(whereClause.lhs, whereClause.rhs))
-      else if (whereClause.rhs.freeVariables == Set())
+      else if (whereClause.rhs.freeVariables - whereClause.nodeVariableName == Set())
         Some(SeparableInequalityWhereClause(whereClause.rhs, whereClause.lhs))
       else
         None
@@ -103,13 +103,12 @@ case class SeparableInequalityWhereClause(
              nodeFunction: JavaExpressionOrQuery,
              paramFunction: JavaExpressionOrQuery) extends WhereClauseNiceness
 
-
 case object SeparableEqualityWhereClause {
   def build(whereClause: WhereClause): Option[SeparableEqualityWhereClause] = {
     if (whereClause.isEqualsInsteadOfGreaterThan)
-      if (whereClause.lhs.freeVariables == Set())
+      if (whereClause.lhs.freeVariables - whereClause.nodeVariableName == Set())
         Some(SeparableEqualityWhereClause(whereClause.lhs, whereClause.rhs))
-      else if (whereClause.rhs.freeVariables == Set())
+      else if (whereClause.rhs.freeVariables - whereClause.nodeVariableName == Set())
         Some(SeparableEqualityWhereClause(whereClause.rhs, whereClause.lhs))
       else
         None

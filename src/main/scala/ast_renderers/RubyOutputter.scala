@@ -103,7 +103,11 @@ object RubyOutputter {
     case JavaBoolLit(x) => x.toString
     case JavaFieldAccess(JavaThis, field) => s"@$field"
     case JavaFieldAccess(scope, field) => outputExpression(scope) + "." + field
-    case JavaMethodCall(scope, field, args) => outputExpression(scope) + "." + field + mbBracket(args.map(outputExpression))
+    case JavaMethodCall(scope, methodName, args) => methodName match {
+      case "[]" => outputExpression(scope) + "[" + outputExpression(args.head) + "]"
+      case "[]=" => outputExpression(scope) + "[" + outputExpression(args.head) + "] = " + outputExpression(args.last)
+      case _ => outputExpression(scope) + "." + methodName + mbBracket(args.map(outputExpression))
+    }
     case JavaNull => "nil"
     case UnorderedQueryApplication(query) => query.toString
   }
@@ -118,6 +122,9 @@ object RubyOutputter {
     case CasFunctionApplication(function, args) => function.toString match {
       case "==" => outputMath(args.head) + " == " + outputMath(args.last)
       case ">" => outputMath(args.head) + " > " + outputMath(args.last)
+    }
+    case x: BinaryOperatorApplication[String] => x.operator.name.name match {
+      case "^" => s"(${x.lhs} ^ ${x.rhs})"
     }
   }
 

@@ -1,8 +1,9 @@
 public class Example  {
     class Person {
-        public Person(int age, int income) {
+        public Person(int age, int income, String gender) {
             this.age = age;
             this.income = income;
+            this.gender = gender;
         }
 
         int age;
@@ -11,10 +12,10 @@ public class Example  {
 
     MagicMultiset<Person> stuff = new MagicMultiset<Person>();
 
-    int getAverageIncomeOfOverFifties() {
-        int totalIncome = stuff.filter(x -> x.age > 50)
+    int getAverageIncomeOfAgeAndGender(int age, String gender) {
+        int totalIncome = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender)
                 .sum(x -> x.income);
-        int numberOfPeople = stuff.filter(x -> x.age > 50).sum(x -> 1);
+        int numberOfPeople = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender).sum(x -> 1);
 
         return totalIncome / numberOfPeople;
     }

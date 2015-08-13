@@ -21,30 +21,46 @@ abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
 
   def insertionFragment: Option[List[JavaStatement]]
   def removalFragment: Option[List[JavaStatement]]
-  def fields: List[JavaFieldDeclaration] //= {
-//    val separableEqualsWhereClauses = query.whereClauses.filter((x) => x.isSeparable && ! x.isConstant)
-//
-//
-//  }
 
-//  def fieldFragments: List[(String, JavaType)]
+  def fields: List[JavaFieldDeclaration] = {
+    fieldFragments.map { (decl) =>
+      JavaFieldDeclaration(decl.name, wrapType(separableEqualsWhereClauses.length, decl.javaType), decl.initialValue)
+    }
+  }
+
+  private def wrapInIndexingCalls(clauses: List[SeparableEqualityWhereClause],
+                                  finalTarget: JavaExpressionOrQuery): JavaExpressionOrQuery = {
+    clauses match {
+      case Nil => finalTarget
+      case clause :: otherClauses =>
+        JavaMethodCall(wrapInIndexingCalls(otherClauses, finalTarget), "[]", List(clause.paramFunction))
+    }
+  }
+
+  private def wrapType(n: Int, javaType: JavaType): JavaType = n match {
+    case 0 => javaType
+    case _ => JavaClassType("Hash", List(JavaIntType, wrapType(n -1, javaType)))
+  }
+
+  def fieldFragments: List[JavaFieldDeclaration]
 
   lazy val separableEqualsWhereClauses: List[SeparableEqualityWhereClause] = {
     val clauses = query.whereClauses.filter((x) => x.isEqualitySeparable && ! x.isConstant)
     clauses.map(_.separableEqualityWhereClause.get).toList
   }
-  
+
   def getField(fieldName: String): JavaExpressionOrQuery = {
-    separableEqualsWhereClauses match {
-      case Nil => JavaFieldAccess(JavaThis, fieldName)
-      case _ => ???
-    }
+    wrapInIndexingCalls(separableEqualsWhereClauses, JavaFieldAccess(JavaThis, fieldName))
   }
-  
-  
-  
+
+  def setField(fieldName: String, value: JavaExpressionOrQuery): JavaStatement = separableEqualsWhereClauses.length match {
+    case 0 =>
+      ExpressionStatement(JavaAssignmentExpression(fieldName, false, value))
+    case _ =>
+      val hashMap = wrapInIndexingCalls(separableEqualsWhereClauses.tail, JavaFieldAccess(JavaThis, fieldName))
+      ExpressionStatement(JavaMethodCall(hashMap, "[]=", List(separableEqualsWhereClauses.head.paramFunction, value)))
+  }
+
   def queryCode: JavaExpressionOrQuery
   def methodCode: Option[JavaMethodDeclaration]
 }
-
-

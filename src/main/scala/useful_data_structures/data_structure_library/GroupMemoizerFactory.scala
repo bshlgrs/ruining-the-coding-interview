@@ -5,12 +5,11 @@ import java_transpiler.queries.{UnorderedQuery, WhereClause}
 
 import big_o.{BigO, Constant}
 import helpers.VariableNameGenerator
-import useful_data_structures.{UsefulDataStructureHelper, UsefulUnorderedDataStructure, UsefulUnorderedDataStructureFactory}
+import useful_data_structures._
 
 object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
 
   case class GroupMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
-    val whereClauses: Set[WhereClause] = query.whereClauses
     val reduction = query.mbReduction.get
 
     val variableName = VariableNameGenerator.getVariableName()
@@ -20,20 +19,32 @@ object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
       val mapper = reduction.mapper
 
       val variableMap = Map(
-        reduction.reducer.arg1 -> JavaFieldAccess(JavaThis, variableName),
+        reduction.reducer.arg1 -> getField(variableName),
         reduction.reducer.arg2 -> mapper.useStr("item")
       )
 
       val body = reduction.reducer.useBody(variableMap)
 
-      Some(List(ExpressionStatement(JavaAssignmentExpression(variableName, false, body))))
+      Some(List(setField(variableName, body)))
     }
 
-    def removalFragment = Some(List())
+    def removalFragment: Option[List[JavaStatement]] = {
+      val mapper = reduction.mapper
+      val reducer = reduction.invertedReducer.get
 
-    def fields = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
+      val variableMap = Map(
+        reducer.arg1 -> getField(variableName),
+        reducer.arg2 -> mapper.useStr("item")
+      )
 
-    def queryCode = JavaFieldAccess(JavaThis, variableName)
+      val body = reducer.useBody(variableMap)
+
+      Some(List(setField(variableName, body)))
+    }
+
+    def fieldFragments = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
+
+    def queryCode = getField(variableName)
 
     def methodCode = None
   }

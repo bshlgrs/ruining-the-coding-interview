@@ -4,7 +4,9 @@ case class CasBinaryOperator[A](name: Name,
                            properties: Set[OperatorProperty],
                            identities: List[MathExp[A]] = List(),
                            annihilator: Option[MathExp[A]] = None) {
-  def apply(lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = lhs.applyBinaryOperator(this, rhs)
+  def apply(lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = {
+    lhs.applyBinaryOperator(this, rhs)
+  }
 
   override def toString = name.name
 
@@ -67,6 +69,12 @@ object max {
 
 object bitwiseAnd {
   def operator[A]() = CasBinaryOperator[A](Name("&"), Set(Commutative, Associative, Idempotent))
+
+  def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
+}
+
+object bitwiseXor {
+  def operator[A]() = CasBinaryOperator[A](Name("^"), Set(Commutative, Associative))
 
   def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = operator()(lhs, rhs)
 }

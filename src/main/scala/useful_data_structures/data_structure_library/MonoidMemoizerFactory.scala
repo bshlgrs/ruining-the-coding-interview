@@ -19,7 +19,7 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
       val mapper = reduction.mapper
 
       val variableMap = Map(
-        reduction.reducer.arg1 -> JavaFieldAccess(JavaThis, variableName),
+        reduction.reducer.arg1 -> getField(variableName),
         reduction.reducer.arg2 -> mapper.useStr("item")
       )
 
@@ -28,21 +28,9 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
       Some(List(ExpressionStatement(JavaAssignmentExpression(variableName, false, body))))
     }
 
-    def removalFragment: Option[List[JavaStatement]] = {
-      val mapper = reduction.mapper
-      val reducer = reduction.invertedReducer.get
+    def removalFragment: Option[List[JavaStatement]] = None
 
-      val variableMap = Map(
-        reducer.arg1 -> JavaFieldAccess(JavaThis, variableName),
-        reducer.arg2 -> mapper.useStr("item")
-      )
-
-      val body = reducer.useBody(variableMap)
-
-      Some(List(ExpressionStatement(JavaAssignmentExpression(variableName, false, body))))
-    }
-
-    def fields = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
+    def fieldFragments = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
 
     def queryCode = JavaFieldAccess(JavaThis, variableName)
 

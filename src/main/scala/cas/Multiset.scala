@@ -17,6 +17,13 @@ case class Multiset[A](items: Map[A, Int]) {
     }
   }
 
+  def splitToTwoChildren = {
+    items.head match {
+      case (item, 1) => (item, Multiset(items.tail))
+      case (item, n) => (item, Multiset(Map(item -> (n - 1)) ++ items.tail))
+    }
+  }
+
   lazy val keys = items.keys
 
   lazy val splitToMultisets: List[Multiset[A]] = items.map({x: (A, Int) => Multiset(Map(x._1 -> x._2))}).toList

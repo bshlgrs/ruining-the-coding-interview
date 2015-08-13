@@ -17,6 +17,7 @@ object JavaMathHelper {
       case BinaryExpr.Operator.binAnd => JavaMath(bitwiseAnd(casify(rhs), casify(lhs)))
       case BinaryExpr.Operator.or => JavaMath(logicalOr(casify(rhs), casify(lhs)))
       case BinaryExpr.Operator.binOr => JavaMath(bitwiseAnd(casify(rhs), casify(lhs)))
+      case BinaryExpr.Operator.xor => JavaMath(bitwiseXor(casify(rhs), casify(lhs)))
       case BinaryExpr.Operator.remainder => JavaMath(modulo(casify(rhs), casify(lhs)))
     }
   }

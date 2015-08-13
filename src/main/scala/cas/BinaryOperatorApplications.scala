@@ -6,12 +6,17 @@ abstract class BinaryOperatorApplication[A](val operator: CasBinaryOperator[A]) 
   def rightCombineWithItem(other: MathExp[A]): MathExp[A]
   def perhapsDeflate(): MathExp[A]
   def postSimplify(): MathExp[A] = this
+  def lhs: MathExp[A]
+  def rhs: MathExp[A]
 }
 
 case class SetApplication[A](op: CasBinaryOperator[A], set: Set[MathExp[A]]) extends BinaryOperatorApplication[A](op) {
   assert(op.is(Commutative, Associative, Idempotent))
 
   lazy val variables = set.flatMap(_.variables)
+
+  val lhs = set.head
+  val rhs = SetApplication(op, set.tail)
 
   def mapOverVariables[B](f: A => B): MathExp[B] = set.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
@@ -38,6 +43,9 @@ case class SetApplication[A](op: CasBinaryOperator[A], set: Set[MathExp[A]]) ext
 case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) extends BinaryOperatorApplication[A](op) {
   lazy val variables = list.flatMap(_.variables).toSet
 
+  val lhs = list.head
+  val rhs = ListApplication(op, list.tail)
+
   def mapOverVariables[B](f: A => B): MathExp[B] = list.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
   def substitute(map: Map[A, MathExp[A]]): MathExp[A] = list.map(_.substitute(map)).reduce(op.apply)
@@ -63,6 +71,10 @@ case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) 
 case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[MathExp[A]])
   extends BinaryOperatorApplication[A](op) {
   lazy val variables = multiset.keys.flatMap(_.variables).toSet
+
+  lazy val (lhs, rhs) = multiset.splitToTwoChildren match {
+    case (item, smallerMultiset) => (item, MultisetApplication(op, smallerMultiset).perhapsDeflate())
+  }
 
   def mapOverVariables[B](f: A => B): MathExp[B] =
     multiset.splitToMultisets.map((x: Multiset[MathExp[A]]) =>
@@ -101,6 +113,9 @@ case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[M
 case class NoDuplicatesListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]])
   extends BinaryOperatorApplication[A](op) {
   lazy val variables = list.flatMap(_.variables).toSet
+
+  val lhs = list.head
+  val rhs = NoDuplicatesListApplication(op, list.tail)
 
   def mapOverVariables[B](f: A => B): MathExp[B] = list.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
