@@ -15,7 +15,7 @@ object UsefulDataStructureHelper {
       case 0 => statements
       case _ => {
         val clauses: List[JavaExpressionOrQuery] = whereClauses.toList.map({ (x) =>
-          x.replaceTarget("item").toJavaExpression
+          x.replaceTarget("item").body
         })
 
         UsefulDataStructureHelper.wrapInIfs(clauses, statements)

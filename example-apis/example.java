@@ -12,7 +12,7 @@ public class Example  {
 
     MagicMultiset<Person> stuff = new MagicMultiset<Person>();
 
-    int getAverageIncomeOfAgeAndGender(int age, String gender) {
+    int getAverageIncomeByAgeAndGender(int age, String gender) {
         int totalIncome = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender)
                 .sum(x -> x.income);
         int numberOfPeople = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender).sum(x -> 1);

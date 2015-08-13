@@ -1,6 +1,6 @@
 package cas
 
-import java_transpiler.{JavaIntType, JavaType, JavaMethodDeclaration}
+import java_transpiler._
 
 import org.scalatest.{Matchers, FlatSpec, PropSpec}
 import org.scalatest.prop.PropertyChecks

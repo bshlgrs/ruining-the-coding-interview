@@ -23,10 +23,9 @@ object UnorderedDataStructureLibrary {
                        requiresDelete: Boolean): Option[UsefulUnorderedDataStructure] = {
     helpfulStructures
       .flatMap { _.tryToCreate(query) }
-      .filter(_._1.insertionFragment.isDefined || ! requiresInsert)
-      .filter(_._1.removalFragment.isDefined || ! requiresDelete)
-      .sortBy(_._2)
+      .filter(_.insertionFragment.isDefined || ! requiresInsert)
+      .filter(_.removalFragment.isDefined || ! requiresDelete)
+      .sortBy(_.asymptoticQueryTime)
       .headOption
-      .map(_._1)
   }
 }

@@ -6,6 +6,7 @@ import org.scalatest.prop.Checkers
 import org.scalatest.matchers.MustMatchers
 import org.scalacheck.{Arbitrary, Gen, Properties}
 import org.scalacheck.Prop.forAll
+import cas._
 
 object ExpressionGenerators {
   lazy val genExpression: Gen[MathExp[Name]] = for {

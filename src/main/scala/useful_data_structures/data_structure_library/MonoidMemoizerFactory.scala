@@ -9,6 +9,8 @@ import useful_data_structures.{UsefulDataStructureHelper, UsefulUnorderedDataStr
 
 object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
   case class MonoidMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
+    val asymptoticQueryTime = Constant
+
     val whereClauses: Set[WhereClause] = query.whereClauses
     val reduction = query.mbReduction.get
 
@@ -37,11 +39,11 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
     def methodCode = None
   }
 
-  def tryToCreate(query: UnorderedQuery): Option[(UsefulUnorderedDataStructure, BigO)] = {
+  def tryToCreate(query: UnorderedQuery): Option[UsefulUnorderedDataStructure] = {
     query match {
       case UnorderedQuery(source, whereClauses, None, Some(reduction))
         if query.trickyWhereClauses.size == 0 =>
-        Some(MonoidMemoizer(query), Constant)
+        Some(MonoidMemoizer(query))
       case _ => None
     }
   }

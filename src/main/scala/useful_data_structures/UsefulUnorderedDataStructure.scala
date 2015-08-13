@@ -7,10 +7,12 @@ import big_o.{Constant, BigO}
 import cas.{MathExp, logicalAnd, CasBinaryOperator, Number}
 
 abstract class UsefulUnorderedDataStructureFactory {
-  def tryToCreate(query: UnorderedQuery): Option[(UsefulUnorderedDataStructure, BigO)]
+  def tryToCreate(query: UnorderedQuery): Option[UsefulUnorderedDataStructure]
 }
 
 abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
+  def asymptoticQueryTime: BigO
+
   def onInsert: Option[List[JavaStatement]] = insertionFragment.map { (fragment) =>
     UsefulDataStructureHelper.filterAndWrapInWheres(query.whereClauses, fragment)
   }

@@ -10,6 +10,8 @@ import useful_data_structures._
 object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
 
   case class GroupMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
+    val asymptoticQueryTime = Constant
+
     val reduction = query.mbReduction.get
 
     val variableName = VariableNameGenerator.getVariableName()
@@ -49,11 +51,11 @@ object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
     def methodCode = None
   }
 
-  def tryToCreate(query: UnorderedQuery): Option[(UsefulUnorderedDataStructure, BigO)] = {
+  def tryToCreate(query: UnorderedQuery): Option[UsefulUnorderedDataStructure] = {
     query match {
       case UnorderedQuery(source, whereClauses, None, Some(reduction))
         if query.trickyWhereClauses.size == 0 && reduction.isInvertible =>
-        Some(GroupMemoizer(query), Constant)
+        Some(GroupMemoizer(query))
       case _ => None
     }
   }

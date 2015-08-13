@@ -3,11 +3,14 @@ package java_transpiler.queries
 import java_transpiler._
 import cas._
 
+import scala.collection.generic.SeqFactory
+
 case class WhereClause(
                   nodeVariableName: String,
-                  lhs: JavaExpressionOrQuery,
-                  rhs: JavaExpressionOrQuery,
-                  isEqualsInsteadOfGreaterThan: Boolean) {
+//                  lhs: JavaExpressionOrQuery,
+//                  rhs: JavaExpressionOrQuery,
+//                  isEqualsInsteadOfGreaterThan: Boolean
+                  body: JavaExpressionOrQuery) {
 
   val constantWhereClause = ConstantWhereClause.build(this)
   val isConstant = constantWhereClause.isDefined
@@ -22,30 +25,21 @@ case class WhereClause(
   assert(isSeparable || ! isConstant, s"a where clause ($this) is allegedly not separable but constant")
 
   def childrenExpressions(): List[JavaExpressionOrQuery] = {
-    List(lhs, rhs)
+    List(body)
   }
 
-  lazy val freeVariables = childrenExpressions().flatMap(_.freeVariables).toSet - nodeVariableName
+  lazy val freeVariables = body.freeVariables - nodeVariableName
 
   def modify(astModifier: AstModifier): WhereClause = {
-    WhereClause(nodeVariableName, lhs.modify(astModifier), rhs.modify(astModifier), isEqualsInsteadOfGreaterThan)
+    WhereClause(nodeVariableName, body.modify(astModifier))
   }
 
   def replaceTarget(newTarget: String): WhereClause = {
     val map = Map(nodeVariableName -> JavaVariable(newTarget))
-    WhereClause(newTarget, lhs.replaceVariables(map), rhs.replaceVariables(map), isEqualsInsteadOfGreaterThan)
+    WhereClause(newTarget, body.replaceVariables(map))
   }
 
-  def toJavaLambdaExpression = JavaLambdaExpr(List(nodeVariableName -> JavaIntType), toJavaExpression)
-
-  lazy val toJavaExpression: JavaExpression = {
-    val op = if (isEqualsInsteadOfGreaterThan)
-      niceFunctions.equals.equals[JavaExpressionOrQuery]
-    else
-      niceFunctions.greaterThan.greaterThan[JavaExpressionOrQuery]
-
-    JavaMath(CasFunctionApplication[JavaExpressionOrQuery](op, List(JavaMathHelper.casify(lhs), JavaMathHelper.casify(rhs))))
-  }
+  def toJavaLambdaExpression = JavaLambdaExpr(List(nodeVariableName -> JavaIntType), body)
 }
 
 object WhereClause {
@@ -53,21 +47,7 @@ object WhereClause {
     predicate match {
       case JavaLambdaExpr(args, body) =>
         assert(args.length == 1, s"where clause $predicate")
-        body match {
-          case JavaMath(CasFunctionApplication(op, List(lhs, rhs))) =>
-            if (op == niceFunctions.equals.equals)
-              WhereClause(args.head._1,
-                JavaMathHelper.decasify(lhs),
-                JavaMathHelper.decasify(rhs),
-                true)
-            else if (op == niceFunctions.greaterThan.greaterThan)
-              WhereClause(args.head._1,
-                JavaMathHelper.decasify(lhs),
-                JavaMathHelper.decasify(rhs),
-                false)
-            else
-              throw new InternalTypeError(s"I have no idea how to do that: $predicate")
-        }
+        WhereClause(args.head._1, body)
       case _ => throw new InternalTypeError(s"where clause got the condition $predicate, which isn't a lambda")
 }}}
 
@@ -87,15 +67,21 @@ object ConstantWhereClause {
 
 case object SeparableInequalityWhereClause {
   def build(whereClause: WhereClause): Option[SeparableInequalityWhereClause] = {
-    if (!whereClause.isEqualsInsteadOfGreaterThan)
-      if (whereClause.lhs.freeVariables - whereClause.nodeVariableName == Set())
-        Some(SeparableInequalityWhereClause(whereClause.lhs, whereClause.rhs))
-      else if (whereClause.rhs.freeVariables - whereClause.nodeVariableName == Set())
-        Some(SeparableInequalityWhereClause(whereClause.rhs, whereClause.lhs))
-      else
-        None
-    else
-      None
+    whereClause.body match {
+      case JavaMath(CasFunctionApplication(op, List(lhs, rhs))) if op.toString == ">" =>
+        if (JavaMath(lhs).freeVariables - whereClause.nodeVariableName == Set())
+          Some(SeparableInequalityWhereClause(JavaMathHelper.decasify(lhs), JavaMathHelper.decasify(rhs)))
+        else if (JavaMath(rhs).freeVariables - whereClause.nodeVariableName == Set())
+          Some(SeparableInequalityWhereClause(JavaMathHelper.decasify(rhs), JavaMathHelper.decasify(lhs)))
+        else
+          None
+      case JavaMath(CasFunctionApplication(op, List(lhs, rhs))) if op.toString == "<" =>
+        build(
+          WhereClause(
+            whereClause.nodeVariableName,
+            JavaMath(CasFunctionApplication(JavaMathHelper.javaGreaterThan, List(rhs, lhs)))))
+      case _ => None
+    }
   }
 }
 
@@ -104,16 +90,15 @@ case class SeparableInequalityWhereClause(
              paramFunction: JavaExpressionOrQuery) extends WhereClauseNiceness
 
 case object SeparableEqualityWhereClause {
-  def build(whereClause: WhereClause): Option[SeparableEqualityWhereClause] = {
-    if (whereClause.isEqualsInsteadOfGreaterThan)
-      if (whereClause.lhs.freeVariables - whereClause.nodeVariableName == Set())
-        Some(SeparableEqualityWhereClause(whereClause.lhs, whereClause.rhs))
-      else if (whereClause.rhs.freeVariables - whereClause.nodeVariableName == Set())
-        Some(SeparableEqualityWhereClause(whereClause.rhs, whereClause.lhs))
+  def build(whereClause: WhereClause): Option[SeparableEqualityWhereClause] = whereClause.body match {
+    case JavaMath(CasFunctionApplication(op, List(lhs, rhs))) if op.toString == "==" =>
+      if (JavaMath(lhs).freeVariables - whereClause.nodeVariableName == Set())
+        Some(SeparableEqualityWhereClause(JavaMathHelper.decasify(lhs), JavaMathHelper.decasify(rhs)))
+      else if (JavaMath(rhs).freeVariables - whereClause.nodeVariableName == Set())
+        Some(SeparableEqualityWhereClause(JavaMathHelper.decasify(rhs), JavaMathHelper.decasify(lhs)))
       else
         None
-    else
-      None
+    case _ => None
   }
 }
 
