@@ -16,6 +16,8 @@ case class LimitByClause(nodeVariableName: String,
 
   lazy val freeVariables: Set[String] = childrenExpressions().flatMap(_.freeVariables).toSet - nodeVariableName
 
+  val orderingLambda = JavaLambdaExpr(List(nodeVariableName -> JavaIntType), orderingFunction)
+
   def modify(modifier: AstModifier): LimitByClause =
     LimitByClause(nodeVariableName, modifier.applyToExpr(orderingFunction), modifier.applyToExpr(limitingFunction))
 

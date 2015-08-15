@@ -99,15 +99,18 @@ object RubyOutputter {
       }
     case JavaLambdaExpr(args, body) => args match {
       case Nil => body match {
-        case JavaMath(Number(x)) => x.toString
-        case _ => s"lambda { ${outputExpression(body)} }"
+        case JavaMath(Number(x)) => "{" + x.toString + "}"
+//        case _ => s"lambda { ${outputExpression(body)} }"
+        case _ => s"{ ${outputExpression(body)} }"
       }
       case _ =>
-        s"lambda { |${args.map(_._1).mkString(", ")}| ${outputExpression(body)} }"
+//        s"lambda { |${args.map(_._1).mkString(", ")}| ${outputExpression(body)} }"
+        s"{ |${args.map(_._1).mkString(", ")}| ${outputExpression(body)} }"
     }
     case JavaThis => "self"
     case JavaVariable(name) => name
-    case JavaNewObject(className, _, args) => s"$className.new${mbBracket(args.map(outputExpression))}"
+    case JavaNewObject(className, _, args) => ///s"$className.new${mbBracket(args.map(outputExpression))}"
+      outputExpression(JavaMethodCall(JavaVariable(className), "new", args))
     case JavaArrayInitializerExpr(items) => "[" + items.map(outputExpression).mkString(", ") + "]"
     case JavaStringLiteral(x) => "\"" + x + "\""
     case JavaBoolLit(x) => x.toString
@@ -116,7 +119,16 @@ object RubyOutputter {
     case JavaMethodCall(scope, methodName, args) => methodName match {
       case "[]" => outputExpression(scope) + "[" + outputExpression(args.head) + "]"
       case "[]=" => outputExpression(scope) + "[" + outputExpression(args.head) + "] = " + outputExpression(args.last)
-      case _ => outputExpression(scope) + "." + methodName + mbBracket(args.map(outputExpression))
+      case _ =>
+        args match {
+          case Nil => outputExpression(scope) + "." + methodName
+          case _ => args.last match {
+            case x: JavaLambdaExpr =>
+              outputExpression(JavaMethodCall(scope, methodName, args.dropRight(1))) + " " + outputExpression(x)
+            case _ =>
+              outputExpression(scope) + "." + methodName + mbBracket(args.map(outputExpression))
+          }
+        }
     }
     case JavaNull => "nil"
     case UnorderedQueryApplication(query) => query.toString

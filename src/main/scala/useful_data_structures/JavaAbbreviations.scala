@@ -13,7 +13,7 @@ object JavaAbbreviations {
 
   def num(int: Int): JavaExpressionOrQuery = JavaMath(Number(int))
 
-  def eq(lhs: JavaExpressionOrQuery, rhs: JavaExpressionOrQuery): JavaExpressionOrQuery =
+  def javaEquals(lhs: JavaExpressionOrQuery, rhs: JavaExpressionOrQuery): JavaExpressionOrQuery =
     JavaMath(niceFunctions.equals(JavaMathHelper.casify(lhs), JavaMathHelper.casify(rhs)))
 
   def gt(lhs: JavaExpressionOrQuery, rhs: JavaExpressionOrQuery): JavaExpressionOrQuery =

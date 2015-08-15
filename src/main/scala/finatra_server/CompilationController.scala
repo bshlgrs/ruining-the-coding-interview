@@ -9,7 +9,7 @@ import useful_data_structures.UnorderedDataStructureLibrary
 
 import scala.util.{Success, Failure, Try}
 
-class HelloWorldController extends Controller {
+class CompilationController extends Controller {
   post("/compile") { compilationRequest: CompilationRequest =>
     val result = for {
       javaClass <- Try(JavaParserWrapper.parseJavaClassToAst(compilationRequest.contents))
@@ -17,7 +17,10 @@ class HelloWorldController extends Controller {
       auxiliaryDataStructures <- Try(querified.queries().map({ (x) =>
         x -> UnorderedDataStructureLibrary.getBestStructureForClass(x, querified)
       }).toMap)
-      optimizedClass <- Try(querified.actualizeQueries(auxiliaryDataStructures))
+      optimizedClass <- if (compilationRequest.optimization)
+        Try(querified.actualizeQueries(auxiliaryDataStructures))
+      else
+        Try(querified.actualizeQueries(Map()))
       out <- Try(RubyOutputter.outputClass(optimizedClass))
     } yield out
 

@@ -114,7 +114,7 @@ case class UnorderedQuery(
     val afterLimit = mbLimiter match {
       case Some(limiter) => {
         JavaMethodCall(
-          JavaMethodCall(afterWhere, "sort_by", List(limiter.orderingFunction)),
+          JavaMethodCall(afterWhere, "sort_by", List(limiter.orderingLambda)),
           "take",
           List(limiter.limitingFunction))
       }

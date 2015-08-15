@@ -2,7 +2,7 @@ package helpers
 
 
 object VariableNameGenerator {
-  var badVariableNames: List[String] = "foo bar cat dog hamster bird knife happy sad foolish".split(" ").toList
+  var badVariableNames: List[String] = "foo bar cat dog hamster bird knife happy sad foolish game ruby x y z thing huh".split(" ").toList
 
   def getVariableName(): String = {
     val result = badVariableNames.head

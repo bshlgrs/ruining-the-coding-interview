@@ -1,7 +1,7 @@
 public class RichestPeopleRememberer  {
     class Person {
         int id;
-        int priority;
+        int income;
         String nationality;
     }
 
@@ -12,6 +12,6 @@ public class RichestPeopleRememberer  {
     }
 
     Item getRichest(String nationality) {
-        return people.filter(x -> x.nationality == nationality).limitBy(x -> - x.priority, 10);
+        return people.filter(x -> x.nationality == nationality).limitBy(x -> - x.income, 10);
     }
 }

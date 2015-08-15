@@ -10,13 +10,13 @@ public class Example  {
     int getAverageIncomeByAgeAndGender(int age, String gender) {
         int totalIncome = people.filter(x -> x.age == age).filter(x -> x.gender == gender)
                 .sum(x -> x.income);
-        int numberOfPeople = people.filter(x -> x.age == age).filter(x -> x.gender == gender).sum(x -> 1);
+        int numberOfPeople = people.filter(x -> x.age == age).filter(x -> x.gender == gender).count();
 
         return totalIncome / numberOfPeople;
     }
 
-    int insertPerson(int age, int income) {
-        people.insert(age, income);
+    int insertPerson(Person person) {
+        people.insert(person);
     }
 
     void removePerson(Person person) {

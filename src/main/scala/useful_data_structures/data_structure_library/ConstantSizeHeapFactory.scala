@@ -25,24 +25,27 @@ object ConstantSizeHeapFactory extends UsefulUnorderedDataStructureFactory {
       val tempVarName = VariableNameGenerator.getVariableName()
 
       val precalculate = ExpressionStatement(
-        JavaAssignmentExpression(tempVarName, true, limiter.applyOrderingFunction(item)))
+        JavaAssignmentExpression(tempVarName, true, limiter.applyOrderingFunction(item))
+      )
 
-      val sizeCondition = lt(field.call("length"), num(size))
+      val sizeCondition = javaEquals(field.call("length"), num(size))
 
       val condition = gt(field.call("min"), jv(tempVarName))
 
-      val pop = ExpressionStatement(field.call("pop"))
-
-      val maybePop = jif(
-        sizeCondition, // if heap.length < maxHeapSize
-        List(jif(condition,
-          List(pop)
-        ))
-      )
+      val pop = ExpressionStatement(field.call("popMin"))
 
       val push = ExpressionStatement(field.call("push", List(JavaArrayInitializerExpr(List(jv(tempVarName), item)))))
 
-      Some(List(precalculate, maybePop, push))
+      val code = jif(
+        condition,
+        List(
+          jif(sizeCondition, // if heap.length < maxHeapSize
+            List(pop)),
+          push
+        )
+      )
+
+      Some(List(precalculate, code))
     }
 
     def removalFragment: Option[List[JavaStatement]] = None
@@ -50,10 +53,10 @@ object ConstantSizeHeapFactory extends UsefulUnorderedDataStructureFactory {
     def fieldFragments = List(
       JavaFieldDeclaration(fieldName,
       JavaClassType("MinHeap", List()),
-      Some(JavaNewObject("MinHeap", Nil, List(limiter.limitingFunction))))
+      Some(JavaNewObject("MinHeap", Nil, Nil)))
     )
 
-    def queryCode = JavaFieldAccess(JavaThis, fieldName).call("keys")
+    def queryCode = field.call("keys")
 
     def methodCode = None
   }
