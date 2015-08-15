@@ -1,18 +1,13 @@
 public class PriorityQueue  {
     class Item {
-        public Item(int id, int priority) {
-            this.id = id;
-            this.priority = priority;
-        }
-
         int id;
         int priority;
     }
 
     MagicMultiset<Item> queue = new MagicMultiset<Item>();
 
-    int insertItem(int id, int priority) {
-        queue.insert(id, priority);
+    int insertItem(Item item) {
+        queue.insert(item);
     }
 
     Item getCheapest() {
@@ -24,9 +19,4 @@ public class PriorityQueue  {
         queue.remove(cheapest);
         return cheapest;
     }
-
-    // if this isn't commented out, my code doesn't know how to optimize getAverageIncomeOfOverFifties.
-    // void removePerson(Person person) {
-    //     stuff.remove(person);
-    // }
 }

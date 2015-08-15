@@ -116,7 +116,7 @@ case class UnorderedQuery(
         JavaMethodCall(
           JavaMethodCall(afterWhere, "sort_by", List(limiter.orderingFunction)),
           "take",
-          List(limiter.orderingFunction))
+          List(limiter.limitingFunction))
       }
       case None => afterWhere
     }

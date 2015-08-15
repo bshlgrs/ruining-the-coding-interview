@@ -5,21 +5,21 @@ public class Example  {
         int income;
     }
 
-    MagicMultiset<Person> stuff = new MagicMultiset<Person>();
+    MagicMultiset<Person> people = new MagicMultiset<Person>();
 
     int getAverageIncomeByAgeAndGender(int age, String gender) {
-        int totalIncome = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender)
+        int totalIncome = people.filter(x -> x.age == age).filter(x -> x.gender == gender)
                 .sum(x -> x.income);
-        int numberOfPeople = stuff.filter(x -> x.age == age).filter(x -> x.gender == gender).sum(x -> 1);
+        int numberOfPeople = people.filter(x -> x.age == age).filter(x -> x.gender == gender).sum(x -> 1);
 
         return totalIncome / numberOfPeople;
     }
 
     int insertPerson(int age, int income) {
-        stuff.insert(age, income);
+        people.insert(age, income);
     }
 
     void removePerson(Person person) {
-        stuff.remove(person);
+        people.remove(person);
     }
 }
