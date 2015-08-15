@@ -13,7 +13,7 @@ $(function () {
 
     $("#compile").on("click", function() {
         $("#compile").text("I am compiling!");
-        $.ajax("http://127.0.0.1:8888/compile",
+        $.ajax("/compile",
             {
                 method: "POST",
                 data: JSON.stringify({contents: editor.getValue()}),

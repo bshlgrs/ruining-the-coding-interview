@@ -23,7 +23,7 @@ class HelloWorldController extends Controller {
 
     result match {
       case Success(out) => out
-      case Failure(exception) => exception.toString
+      case Failure(exception) => exception.toString ++ "\n\n" ++ exception.getStackTrace.map(_.toString).mkString("\n")
     }
   }
 

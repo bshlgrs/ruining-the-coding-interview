@@ -7,9 +7,6 @@ import scala.collection.generic.SeqFactory
 
 case class WhereClause(
                   nodeVariableName: String,
-//                  lhs: JavaExpressionOrQuery,
-//                  rhs: JavaExpressionOrQuery,
-//                  isEqualsInsteadOfGreaterThan: Boolean
                   body: JavaExpressionOrQuery) {
 
   val constantWhereClause = ConstantWhereClause.build(this)
@@ -43,13 +40,21 @@ case class WhereClause(
 }
 
 object WhereClause {
-  def build(predicate: JavaExpressionOrQuery): WhereClause = {
+  def build(predicate: JavaExpressionOrQuery): List[WhereClause] = {
     predicate match {
       case JavaLambdaExpr(args, body) =>
         assert(args.length == 1, s"where clause $predicate")
-        WhereClause(args.head._1, body)
+        buildBody(body).map(WhereClause(args.head._1, _))
       case _ => throw new InternalTypeError(s"where clause got the condition $predicate, which isn't a lambda")
-}}}
+    }
+  }
+
+  def buildBody(body: JavaExpressionOrQuery): List[JavaExpressionOrQuery] = body match {
+    case JavaMath(x : BinaryOperatorApplication[JavaExpressionOrQuery]) if x.operator == logicalAnd.operator() =>
+      buildBody(JavaMathHelper.decasify(x.lhs)) ++ buildBody(JavaMathHelper.decasify(x.rhs))
+    case x => List(x)
+  }
+}
 
 abstract class WhereClauseNiceness
 

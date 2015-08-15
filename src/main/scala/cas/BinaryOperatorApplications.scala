@@ -1,10 +1,16 @@
 package cas
 
+/* I am very proud of this file.
+
+The idea is that when you apply a binary operator, it decides on a
+
+
+*/
+
 abstract class BinaryOperatorApplication[A](val operator: CasBinaryOperator[A]) extends MathExp[A] {
   def combineWithCollection(other: this.type): MathExp[A]
   def leftCombineWithItem(other: MathExp[A]): MathExp[A]
   def rightCombineWithItem(other: MathExp[A]): MathExp[A]
-  def perhapsDeflate(): MathExp[A]
   def postSimplify(): MathExp[A] = this
   def lhs: MathExp[A]
   def rhs: MathExp[A]
@@ -20,24 +26,28 @@ case class SetApplication[A](op: CasBinaryOperator[A], set: Set[MathExp[A]]) ext
 
   def mapOverVariables[B](f: A => B): MathExp[B] = set.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
-  def substitute(map: Map[A, MathExp[A]]): MathExp[A] = SetApplication[A](op, set.map(_.substitute(map)))
+  def substitute(map: Map[A, MathExp[A]]): MathExp[A] = SetApplication.build(op, set.map(_.substitute(map)))
 
   def combineWithCollection(other: this.type): MathExp[A] = {
     assert(this.op == other.op)
-    SetApplication(op, set ++ other.set).asInstanceOf[MathExp[A]]
+    SetApplication.build(op, set ++ other.set)
   }
 
   def leftCombineWithItem(item: MathExp[A]) = {
-    SetApplication(op, set + item).perhapsDeflate()
+    SetApplication.build(op, set + item)
   }
 
   def rightCombineWithItem(item: MathExp[A]) = leftCombineWithItem(item)
+}
 
-  def perhapsDeflate() = this.set.size match {
+object SetApplication {
+  def build[A](op: CasBinaryOperator[A], items: Set[MathExp[A]]): MathExp[A] = items.size match {
     case 0 => ???
-    case 1 => this.set.toList.head
-    case _ => this
+    case 1 => items.head
+    case _ =>
+      SetApplication(op, items)
   }
+
 }
 
 case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) extends BinaryOperatorApplication[A](op) {
@@ -56,16 +66,10 @@ case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) 
   }
 
   def leftCombineWithItem(item: MathExp[A]) = {
-    ListApplication(op, item +: list).perhapsDeflate()
+    ListApplication(op, item +: list)
   }
 
-  def rightCombineWithItem(item: MathExp[A]) = { ListApplication(op, list :+ item).perhapsDeflate() }
-
-  def perhapsDeflate() = this.list.size match {
-    case 0 => ???
-    case 1 => this.list.head
-    case _ => this
-  }
+  def rightCombineWithItem(item: MathExp[A]) = { ListApplication(op, list :+ item) }
 }
 
 case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[MathExp[A]])
@@ -73,7 +77,7 @@ case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[M
   lazy val variables = multiset.keys.flatMap(_.variables).toSet
 
   lazy val (lhs, rhs) = multiset.splitToTwoChildren match {
-    case (item, smallerMultiset) => (item, MultisetApplication(op, smallerMultiset).perhapsDeflate())
+    case (item, smallerMultiset) => (item, MultisetApplication.build(op, smallerMultiset))
   }
 
   def mapOverVariables[B](f: A => B): MathExp[B] =
@@ -102,11 +106,14 @@ case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[M
   }
 
   def rightCombineWithItem(item: MathExp[A]) = leftCombineWithItem(item)
+}
 
-  def perhapsDeflate() = this.multiset.size match {
-    case 0 => ???
-    case 1 => multiset.items.head._1
-    case _ => this
+object MultisetApplication {
+  def build[A](op: CasBinaryOperator[A], multiset: Multiset[MathExp[A]]): MathExp[A] = {
+    if (multiset.items.size == 1 && multiset.items.head._2 == 1)
+      multiset.items.head._1
+    else
+      MultisetApplication(op, multiset)
   }
 }
 

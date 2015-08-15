@@ -323,5 +323,10 @@ object niceFunctions {
     def greaterThan[A] = CasFunction[A](CasConstant(">"), 2)
     def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = CasFunctionApplication(greaterThan, List(lhs, rhs))
   }
+
+  object greaterThanOrEquals {
+    def greaterThanOrEquals[A] = CasFunction[A](CasConstant(">="), 2)
+    def apply[A](lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = CasFunctionApplication(greaterThanOrEquals, List(lhs, rhs))
+  }
 }
 

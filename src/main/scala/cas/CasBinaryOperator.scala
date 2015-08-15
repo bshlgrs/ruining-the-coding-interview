@@ -15,7 +15,7 @@ case class CasBinaryOperator[A](name: Name,
   // this deals with the case when you're taking the min of two expressions which aren't mins themselves.
   def seedWithOperation(lhs: MathExp[A], rhs: MathExp[A]): MathExp[A] = {
     (is(Commutative), is(Associative), is(Idempotent)) match {
-      case (true, true, true) => SetApplication[A](this, Set(lhs, rhs)).perhapsDeflate()
+      case (true, true, true) => SetApplication.build(this, Set(lhs, rhs))
       case (true, true, false) => this.apply(MultisetApplication[A](this, new Multiset[MathExp[A]](Map(lhs -> 1))), rhs)
       case (true, false, true) =>
         if (lhs == rhs)
@@ -34,7 +34,7 @@ case class CasBinaryOperator[A](name: Name,
           lhs
         else
           NoDuplicatesListApplication[A](this, List(lhs, rhs))
-      case (false, true, false) => ListApplication[A](this, List(lhs, rhs))
+      case (false, true, false) => ListApplication(this, List(lhs, rhs))
       case (false, false, true) =>
         if (lhs == rhs)
           lhs

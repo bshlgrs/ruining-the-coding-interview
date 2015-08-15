@@ -44,7 +44,7 @@ case class UnorderedQuery(
   }
 
   def filter(arg: JavaExpressionOrQuery, context: JavaContext): JavaExpressionOrQuery = {
-    val thisClause = Set(WhereClause.build(arg))
+    val thisClause = WhereClause.build(arg).toSet
 
     this match {
       case UnorderedQuery(_, _, None, None) =>

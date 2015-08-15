@@ -1,4 +1,4 @@
-public class MaxStream  {
+public class RichestPeopleRememberer  {
     class Person {
         int id;
         int priority;
