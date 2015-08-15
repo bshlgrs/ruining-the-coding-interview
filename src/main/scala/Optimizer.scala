@@ -24,7 +24,7 @@ object Optimizer {
   }
 
   def main(args: Array[String]) {
-    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/example.java")).getLines().mkString("\n")
+    val javaSource = Source.fromFile(args.headOption.getOrElse("example-apis/Example.java")).getLines().mkString("\n")
 
     val javaClass = JavaParserWrapper.parseJavaClassToAst(javaSource)
 

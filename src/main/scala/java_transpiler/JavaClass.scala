@@ -30,7 +30,8 @@ case class JavaClass(name: String,
 
     val modificationMethods = magicMultisets.flatMap((x) => x._2.modificationMethods(x._1, auxiliaryDataStructures))
 
-    classWithModifiedMethods.copy(methods = classWithModifiedMethods.methods ++ queryMethods ++ modificationMethods)
+    classWithModifiedMethods.copy(methods = classWithModifiedMethods.methods ++ queryMethods ++ modificationMethods,
+                                  fields = fields ++ auxiliaryDataStructures.flatMap(_._2.map(_.fields).getOrElse(Nil)))
   }
 
   def unorderedTables(): Map[String, JavaClass] = {
@@ -57,7 +58,7 @@ case class JavaClass(name: String,
     names.map({(name) =>
       val fieldDeclaration = getField(name).getOrElse(throw new RuntimeException(s"oh god $name"))
       val javaClass = getInnerClass(fieldDeclaration.javaType.asInstanceOf[JavaClassType].itemTypes.head.toScalaTypeString())
-        .getOrElse(throw new RuntimeException(s"oh god $fieldDeclaration"))
+        .getOrElse(throw new RuntimeException(s"I could not find an innerClass"))
       val supportsInsert = methodsCalledOnObject(name).contains("insert")
       val supportsRemove = methodsCalledOnObject(name).contains("remove")
       name -> MagicMultiset(javaClass, supportsInsert, supportsRemove)}).toMap

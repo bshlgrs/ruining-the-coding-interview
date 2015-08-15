@@ -1,11 +1,6 @@
 public class Example  {
     class Person {
-        public Person(int age, int income, String gender) {
-            this.age = age;
-            this.income = income;
-            this.gender = gender;
-        }
-
+        String gender;
         int age;
         int income;
     }
@@ -24,7 +19,6 @@ public class Example  {
         stuff.insert(age, income);
     }
 
-    // if this isn't commented out, my code doesn't know how to optimize getAverageIncomeOfOverFifties.
     void removePerson(Person person) {
         stuff.remove(person);
     }

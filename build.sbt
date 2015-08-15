@@ -1,3 +1,5 @@
+import com.typesafe.sbt.packager.archetypes.JavaAppPackaging
+import NativePackagerKeys._
 
 name := "data-structure-maker"
 
@@ -8,7 +10,8 @@ scalaVersion := "2.11.5"
 resolvers ++= List(
   Resolver.sonatypeRepo("releases"),
   "Finatra Repo" at "http://twitter.github.com/finatra",
-  "Twitter Maven" at "http://maven.twttr.com"
+  "Twitter Maven" at "http://maven.twttr.com",
+  "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
 )
 
 libraryDependencies ++= List(

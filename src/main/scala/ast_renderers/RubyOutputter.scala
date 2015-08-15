@@ -32,7 +32,7 @@ object RubyOutputter {
     else
       ""
 
-    val innerClasses = javaClass.innerClasses.map(outputClass).mkString("\n")
+    val innerClasses = ""// javaClass.innerClasses.map(outputClass).mkString("\n")
 
     val fields = javaClass.fields.map({ (x) =>
       s"# ${x.name}: ${x.javaType.toScalaTypeString()} = ${x.initialValue}"
@@ -48,7 +48,7 @@ object RubyOutputter {
   def outputMethod(decl: JavaMethodDeclaration): String = {
     val args = mbBracket(decl.args.map(_._1))
 
-    val body = outputBlock(decl.body, true)
+    val body = outputBlock(decl.body, true).split("\n+").mkString("\n")
 
     s"def ${if (decl.isStatic) "self." else ""}${decl.name}$args\n$body\nend"
   }
@@ -65,7 +65,7 @@ object RubyOutputter {
         case None => ""
       }
       case IfStatement(cond, thenCase, elseCase) =>
-        s"if ${outputExpression(cond)}\n${outputBlock(thenCase, isAtEnd)}\nelse\n${outputBlock(elseCase, isAtEnd)}\nend"
+        s"if ${outputExpression(cond)} \n ${outputBlock(thenCase, isAtEnd)}\nelse\n${outputBlock(elseCase, isAtEnd)}\nend"
       case _ =>
         throw new RuntimeException(s"ruby needs to have a output for ${stmt.getClass}")
     }
@@ -86,14 +86,24 @@ object RubyOutputter {
   def outputExpression(exp: JavaExpressionOrQuery): String = exp match {
     case JavaMath(ast) => outputMath(ast.mapOverVariables(outputExpression))
     case JavaAssignmentExpression(name, isLocal, expr) =>
-      isLocal match {
-        case true => s"$name = ${outputExpression(expr)}"
-        case false =>
-          s"@$name = ${outputExpression(expr)}"
+      val variableString = if (isLocal) name else "@" + name
+      val nameGetter = if (isLocal) JavaVariable(name) else JavaFieldAccess(JavaThis, name)
+
+      expr match {
+        case JavaMath(Sum(set)) if set.size == 2 && set.contains(JavaMathHelper.casify(nameGetter)) => {
+          val otherThing = set.find(_ != JavaMathHelper.casify(nameGetter)).get
+
+          s"$variableString += ${outputExpression(JavaMathHelper.decasify(otherThing))}"
+        }
+        case _ => s"$variableString = ${outputExpression(expr)}"
       }
     case JavaLambdaExpr(args, body) => args match {
-      case Nil => throw new RuntimeException("Hey, I don't allow side effects in lambdas right now, so this is bad")
-      case _ => s"lambda { |${args.map(_._1).mkString(", ")}| ${outputExpression(body)} }"
+      case Nil => body match {
+        case JavaMath(Number(x)) => x.toString
+        case _ => s"lambda { ${outputExpression(body)} }"
+      }
+      case _ =>
+        s"lambda { |${args.map(_._1).mkString(", ")}| ${outputExpression(body)} }"
     }
     case JavaThis => "self"
     case JavaVariable(name) => name
@@ -121,7 +131,11 @@ object RubyOutputter {
     case BinaryTreeApplication(op, lhs, rhs) => s"(${outputMath(lhs)} ${op.toString} ${outputMath(rhs)})"
     case CasFunctionApplication(function, args) => function.toString match {
       case "==" => outputMath(args.head) + " == " + outputMath(args.last)
-      case ">" => outputMath(args.head) + " > " + outputMath(args.last)
+      case ">" => args.head match {
+          // this is to ensure that you get things like x < 10 instead of 10 > x
+        case Number(n) => outputMath(args.last) + " < " + outputMath(args.head)
+        case _ =>  outputMath(args.head) + " > " + outputMath(args.last)
+      }
     }
     case x: BinaryOperatorApplication[String] => x.operator.name.name match {
       case "^" => s"(${x.lhs} ^ ${x.rhs})"

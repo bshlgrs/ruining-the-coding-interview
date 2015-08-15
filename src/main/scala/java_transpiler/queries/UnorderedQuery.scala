@@ -71,11 +71,11 @@ case class UnorderedQuery(
       case UnorderedQuery(_, _, _, None) =>
         UnorderedQueryApplication(
           UnorderedQuery(source, whereClauses, mbLimiter, Some(Reduction.build(start, map, reducer, context))))
+      case _ => ???
     }
   }
 
   def sum(map: JavaExpressionOrQuery, context: JavaContext) = {
-    val identityOnNumber = JavaLambdaExpr(List("x" -> JavaIntType), JavaVariable("x"))
     val sumOnNumber = JavaLambdaExpr(List("x" -> JavaIntType, "y" -> JavaIntType),
       JavaExpression.parse("x + y"))
 

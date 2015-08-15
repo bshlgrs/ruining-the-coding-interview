@@ -24,6 +24,6 @@ object UsefulDataStructureHelper {
   }
 
   def filterAndWrapInWheres(whereClauses: Set[WhereClause], statements: List[JavaStatement]): List[JavaStatement] = {
-    wrapInWheres(whereClauses.filter((x) => x.isConstant || x.isSeparable), statements)
+    wrapInWheres(whereClauses.filter((x) => x.isConstant), statements)
   }
 }

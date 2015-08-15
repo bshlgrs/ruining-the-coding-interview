@@ -21,12 +21,17 @@ abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
     UsefulDataStructureHelper.filterAndWrapInWheres(query.whereClauses, fragment)
   }
 
+  protected def item = JavaVariable("item")
+
   def insertionFragment: Option[List[JavaStatement]]
   def removalFragment: Option[List[JavaStatement]]
 
   def fields: List[JavaFieldDeclaration] = {
     fieldFragments.map { (decl) =>
-      JavaFieldDeclaration(decl.name, wrapType(separableEqualsWhereClauses.length, decl.javaType), decl.initialValue)
+      JavaFieldDeclaration(
+        decl.name,
+        wrapType(separableEqualsWhereClauses.length, decl.javaType),
+        decl.initialValue.map(wrapInDeclarations(separableEqualsWhereClauses, _)))
     }
   }
 
@@ -36,6 +41,16 @@ abstract class UsefulUnorderedDataStructure(query: UnorderedQuery) {
       case Nil => finalTarget
       case clause :: otherClauses =>
         JavaMethodCall(wrapInIndexingCalls(otherClauses, finalTarget), "[]", List(clause.paramFunction))
+    }
+  }
+
+  private def wrapInDeclarations(clauses: List[SeparableEqualityWhereClause],
+                                 finalTarget: JavaExpressionOrQuery): JavaExpressionOrQuery = {
+    clauses match {
+      case Nil => finalTarget
+      case clause :: otherClauses =>
+        // the types here are wrong
+        JavaNewObject("Hash", List(JavaIntType), List(JavaLambdaExpr(Nil, wrapInDeclarations(otherClauses, finalTarget))))
     }
   }
 

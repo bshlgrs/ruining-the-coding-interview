@@ -11,30 +11,28 @@ object MonoidMemoizerFactory extends UsefulUnorderedDataStructureFactory {
   case class MonoidMemoizer(query: UnorderedQuery) extends UsefulUnorderedDataStructure(query) {
     val asymptoticQueryTime = Constant
 
-    val whereClauses: Set[WhereClause] = query.whereClauses
     val reduction = query.mbReduction.get
 
-    val variableName = VariableNameGenerator.getVariableName()
-    val methodName = s"get_$variableName"
+    val fieldName = VariableNameGenerator.getVariableName()
 
     lazy val insertionFragment: Option[List[JavaStatement]] = {
       val mapper = reduction.mapper
 
       val variableMap = Map(
-        reduction.reducer.arg1 -> getField(variableName),
+        reduction.reducer.arg1 -> getField(fieldName),
         reduction.reducer.arg2 -> mapper.useStr("item")
       )
 
       val body = reduction.reducer.useBody(variableMap)
 
-      Some(List(ExpressionStatement(JavaAssignmentExpression(variableName, false, body))))
+      Some(List(ExpressionStatement(JavaAssignmentExpression(fieldName, false, body))))
     }
 
     def removalFragment: Option[List[JavaStatement]] = None
 
-    def fieldFragments = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
+    def fieldFragments = List(JavaFieldDeclaration(fieldName, JavaIntType, Some(reduction.start)))
 
-    def queryCode = JavaFieldAccess(JavaThis, variableName)
+    def queryCode = JavaFieldAccess(JavaThis, fieldName)
 
     def methodCode = None
   }

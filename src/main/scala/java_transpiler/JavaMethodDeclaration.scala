@@ -14,7 +14,6 @@ case class JavaMethodDeclaration(name: String,
                                  isStatic: Boolean,
                                  args: List[(String, JavaType)],
                                  body: List[JavaStatement]) {
-
   def modifyWithAstModifier(astModifier: AstModifier): JavaMethodDeclaration = {
     JavaMethodDeclaration(name, returnType, isStatic, args, body.flatMap(astModifier.applyToStmt))
   }
@@ -45,7 +44,6 @@ case class JavaConstructorDeclaration(args: List[(String, JavaType)],
                                       body: List[JavaStatement]) {
   def modifyWithAstModifier(astModifier: AstModifier): JavaConstructorDeclaration = {
     JavaConstructorDeclaration(args, body.flatMap(astModifier.applyToStmt))
-
   }
 }
 

@@ -14,20 +14,19 @@ object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
 
     val reduction = query.mbReduction.get
 
-    val variableName = VariableNameGenerator.getVariableName()
-    val methodName = s"get_$variableName"
+    val fieldName = VariableNameGenerator.getVariableName()
 
     lazy val insertionFragment: Option[List[JavaStatement]] = {
       val mapper = reduction.mapper
 
       val variableMap = Map(
-        reduction.reducer.arg1 -> getField(variableName),
+        reduction.reducer.arg1 -> getField(fieldName),
         reduction.reducer.arg2 -> mapper.useStr("item")
       )
 
       val body = reduction.reducer.useBody(variableMap)
 
-      Some(List(setField(variableName, body)))
+      Some(List(setField(fieldName, body)))
     }
 
     def removalFragment: Option[List[JavaStatement]] = {
@@ -35,18 +34,18 @@ object GroupMemoizerFactory extends UsefulUnorderedDataStructureFactory {
       val reducer = reduction.invertedReducer.get
 
       val variableMap = Map(
-        reducer.arg1 -> getField(variableName),
+        reducer.arg1 -> getField(fieldName),
         reducer.arg2 -> mapper.useStr("item")
       )
 
       val body = reducer.useBody(variableMap)
 
-      Some(List(setField(variableName, body)))
+      Some(List(setField(fieldName, body)))
     }
 
-    def fieldFragments = List(JavaFieldDeclaration(variableName, JavaIntType, Some(reduction.start)))
+    def fieldFragments = List(JavaFieldDeclaration(fieldName, JavaIntType, Some(reduction.start)))
 
-    def queryCode = getField(variableName)
+    def queryCode = getField(fieldName)
 
     def methodCode = None
   }

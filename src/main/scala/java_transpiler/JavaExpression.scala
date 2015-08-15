@@ -145,6 +145,8 @@ object JavaExpression {
       throw new RuntimeException("this case should be handled in the JavaStatement#build method :/")
     case exp: NullLiteralExpr =>
       JavaNull
+    case exp: UnaryExpr if exp.getOperator == UnaryExpr.Operator.negative =>
+      JavaMathHelper.opToMath(BinaryExpr.Operator.minus, JavaMath(Number(0)), build(exp.getExpr)).asInstanceOf[JavaExpression]
     case _ =>
       println(s"$exp : ${exp.getClass} not implemented, do it man")
       ???

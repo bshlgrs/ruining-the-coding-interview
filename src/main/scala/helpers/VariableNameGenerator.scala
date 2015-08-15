@@ -6,7 +6,7 @@ object VariableNameGenerator {
 
   def getVariableName(): String = {
     val result = badVariableNames.head
-    badVariableNames = badVariableNames.tail
+    badVariableNames = badVariableNames.tail ++ List(result)
     result
   }
 

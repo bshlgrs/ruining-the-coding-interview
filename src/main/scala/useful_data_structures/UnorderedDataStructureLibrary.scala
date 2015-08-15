@@ -8,6 +8,7 @@ import useful_data_structures.data_structure_library._
 
 object UnorderedDataStructureLibrary {
   val helpfulStructures: List[UsefulUnorderedDataStructureFactory] = List(
+    ConstantSizeHeapFactory,
     MonoidMemoizerFactory,
     GroupMemoizerFactory
   )

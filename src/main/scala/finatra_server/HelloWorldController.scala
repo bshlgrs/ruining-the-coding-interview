@@ -10,16 +10,6 @@ import useful_data_structures.UnorderedDataStructureLibrary
 import scala.util.{Success, Failure, Try}
 
 class HelloWorldController extends Controller {
-
-  get("/hi") { request: Request =>
-//  	info("hi")
-    "Hello I*S" + request.params.getOrElse("name", "unnamed")
-  }
-
-  post("/hi") { hiRequest: HiRequest =>
-    "Hello " + hiRequest.name + " with id " + hiRequest.id
-  }
-
   post("/compile") { compilationRequest: CompilationRequest =>
     val result = for {
       javaClass <- Try(JavaParserWrapper.parseJavaClassToAst(compilationRequest.contents))
@@ -35,7 +25,10 @@ class HelloWorldController extends Controller {
       case Success(out) => out
       case Failure(exception) => exception.toString
     }
+  }
 
-
+  get("/:*") { request: Request =>
+    response.ok.file(
+      request.params("*"))
   }
 }

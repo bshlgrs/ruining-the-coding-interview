@@ -20,6 +20,10 @@ case class LimitByClause(nodeVariableName: String,
     LimitByClause(nodeVariableName, modifier.applyToExpr(orderingFunction), modifier.applyToExpr(limitingFunction))
 
   val constantSizeLimitBy = ConstantSizeLimitBy.build(this)
+
+  def applyOrderingFunction(thing: JavaExpressionOrQuery): JavaExpressionOrQuery = {
+    orderingFunction.replaceVariables(Map(nodeVariableName -> thing))
+  }
 }
 
 object LimitByClause {

@@ -22,6 +22,8 @@ abstract class JavaExpressionOrQuery {
   def replaceVariables(map: Map[String, JavaExpressionOrQuery]): JavaExpressionOrQuery = {
     this.modify(VariableReplacer(map))
   }
+
+  def call(methodName: String, args: List[JavaExpressionOrQuery] = Nil) = JavaMethodCall(this, methodName, args)
 }
 
 case class UnorderedQueryApplication(unorderedQuery: UnorderedQuery) extends JavaExpressionOrQuery {
