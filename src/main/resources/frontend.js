@@ -1,7 +1,7 @@
 $(function () {
     var editor = ace.edit("editor");
 
-    editor.setValue("public class MaxStream  {\n    class Person {\n        int id;\n        int priority;\n        String nationality;\n    }\n\n    MagicMultiset<Person> people = new MagicMultiset<Person>();\n\n    int insertPerson(Person person) {\n        people.insert(person);\n    }\n\n    Item getRichest(String nationality) {\n        return peopler.filter(x -> x.nationality == nationality).limitBy(x -> - x.priority, 1);\n    }\n}\n\n");
+    editor.setValue("public class MaxStream  {\n    class Person {\n        int id;\n        int priority;\n        String nationality;\n    }\n\n    MagicMultiset<Person> people = new MagicMultiset<Person>();\n\n    int insertPerson(Person person) {\n        people.insert(person);\n    }\n\n    Item getRichest(String nationality) {\n        return people.filter(x -> x.nationality == nationality).limitBy(x -> - x.priority, 1);\n    }\n}\n\n");
     editor.setTheme("ace/theme/monokai");
     editor.getSession().setMode("ace/mode/java");
     editor.gotoLine(0);

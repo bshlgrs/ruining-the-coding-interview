@@ -12,6 +12,6 @@ public class MaxStream  {
     }
 
     Item getRichest(String nationality) {
-        return peopler.filter(x -> x.nationality == nationality).limitBy(x -> - x.priority, 1);
+        return people.filter(x -> x.nationality == nationality).limitBy(x -> - x.priority, 10);
     }
 }

@@ -21,11 +21,11 @@ object UnorderedDataStructureLibrary {
 
   def getBestStructure(query: UnorderedQuery,
                        requiresInsert: Boolean,
-                       requiresDelete: Boolean): Option[UsefulUnorderedDataStructure] = {
+                       requiresRemove: Boolean): Option[UsefulUnorderedDataStructure] = {
     helpfulStructures
       .flatMap { _.tryToCreate(query) }
       .filter(_.insertionFragment.isDefined || ! requiresInsert)
-      .filter(_.removalFragment.isDefined || ! requiresDelete)
+      .filter(_.removalFragment.isDefined || ! requiresRemove)
       .sortBy(_.asymptoticQueryTime)
       .headOption
   }

@@ -214,7 +214,7 @@ The auxiliary data structures are chosen by the `UnorderedDataStructureLibrary`.
     helpfulStructures
       .flatMap { _.tryToCreate(query) }
       .filter(_._1.insertionFragment.isDefined || ! requiresInsert)
-      .filter(_._1.removalFragment.isDefined || ! requiresDelete)
+      .filter(_._1.removalFragment.isDefined || ! requiresRemove)
       .sortBy(_._2)
       .headOption
       .map(_._1)
