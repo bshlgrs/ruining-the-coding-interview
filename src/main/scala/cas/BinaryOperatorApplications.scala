@@ -22,7 +22,7 @@ case class SetApplication[A](op: CasBinaryOperator[A], set: Set[MathExp[A]]) ext
   lazy val variables = set.flatMap(_.variables)
 
   val lhs = set.head
-  val rhs = SetApplication(op, set.tail)
+  val rhs = SetApplication.build(op, set.tail)
 
   def mapOverVariables[B](f: A => B): MathExp[B] = set.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
@@ -47,14 +47,13 @@ object SetApplication {
     case _ =>
       SetApplication(op, items)
   }
-
 }
 
 case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) extends BinaryOperatorApplication[A](op) {
   lazy val variables = list.flatMap(_.variables).toSet
 
   val lhs = list.head
-  val rhs = ListApplication(op, list.tail)
+  val rhs = ListApplication.build(op, list.tail)
 
   def mapOverVariables[B](f: A => B): MathExp[B] = list.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
@@ -71,6 +70,15 @@ case class ListApplication[A](op: CasBinaryOperator[A], list: List[MathExp[A]]) 
 
   def rightCombineWithItem(item: MathExp[A]) = { ListApplication(op, list :+ item) }
 }
+
+object ListApplication {
+  def build[A](op: CasBinaryOperator[A], items: List[MathExp[A]]): MathExp[A] = items.size match {
+    case 0 => ???
+    case 1 => items.head
+    case _ => ListApplication(op, items)
+  }
+}
+
 
 case class MultisetApplication[A](op: CasBinaryOperator[A], multiset: Multiset[MathExp[A]])
   extends BinaryOperatorApplication[A](op) {
@@ -122,7 +130,7 @@ case class NoDuplicatesListApplication[A](op: CasBinaryOperator[A], list: List[M
   lazy val variables = list.flatMap(_.variables).toSet
 
   val lhs = list.head
-  val rhs = NoDuplicatesListApplication(op, list.tail)
+  val rhs = NoDuplicatesListApplication.build(op, list.tail)
 
   def mapOverVariables[B](f: A => B): MathExp[B] = list.map(_.mapOverVariables(f)).reduce(op.lossilyConvert[B]()(_, _))
 
@@ -158,11 +166,13 @@ case class NoDuplicatesListApplication[A](op: CasBinaryOperator[A], list: List[M
       NoDuplicatesListApplication(op, list ++ List(item))
     }
   }
+}
 
-  def perhapsDeflate() = list.size match {
+object NoDuplicatesListApplication {
+  def build[A](op: CasBinaryOperator[A], items: List[MathExp[A]]): MathExp[A] = items.size match {
     case 0 => ???
-    case 1 => list.head
-    case _ => this
+    case 1 => items.head
+    case _ => NoDuplicatesListApplication(op, items)
   }
 }
 
@@ -180,7 +190,6 @@ case class BinaryTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A], r
 
   def leftCombineWithItem(item: MathExp[A]) = BinaryTreeApplication(op, this, item)
   def rightCombineWithItem(item: MathExp[A]) = BinaryTreeApplication(op, item, this)
-  def perhapsDeflate() = this
 }
 
 case class SymmetricTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A], rhs: MathExp[A]) extends BinaryOperatorApplication[A](op) {
@@ -207,7 +216,6 @@ case class SymmetricTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A]
       BinaryTreeApplication(op, item, this)
   }
   def rightCombineWithItem(item: MathExp[A]) = BinaryTreeApplication(op, item, this)
-  def perhapsDeflate() = this
 }
 
 case class SymmetricIdempotentTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A], rhs: MathExp[A]) extends BinaryOperatorApplication[A](op) {
@@ -238,7 +246,6 @@ case class SymmetricIdempotentTreeApplication[A](op: CasBinaryOperator[A], lhs: 
       BinaryTreeApplication(op, item, this)
   }
   def rightCombineWithItem(item: MathExp[A]) = BinaryTreeApplication(op, item, this)
-  def perhapsDeflate() = this
 }
 
 case class IdempotentTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A], rhs: MathExp[A]) extends BinaryOperatorApplication[A](op) {
@@ -265,5 +272,4 @@ case class IdempotentTreeApplication[A](op: CasBinaryOperator[A], lhs: MathExp[A
     else
       IdempotentTreeApplication(op, this, item)
   }
-  def perhapsDeflate() = this
 }
