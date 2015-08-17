@@ -2,8 +2,11 @@ package cas
 
 /* I am very proud of this file.
 
-The idea is that when you apply a binary operator, it decides on a
+The idea is that when you apply a binary operator, it decides on a data structure to use based on the properties of the
+operator.
 
+For example, applications of arbitrary binary operators are represented as binary trees. If they're associative, they're
+represented as lists. And so on.
 
 */
 
