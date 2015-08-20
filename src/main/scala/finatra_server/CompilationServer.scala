@@ -8,9 +8,9 @@ import com.twitter.finatra.logging.filter.{TraceIdMDCFilter, LoggingMDCFilter}
 import com.twitter.finatra.logging.modules.LogbackModule
 
 
-object HelloWorldServerMain extends HelloWorldServer
+object CompilationServerMain extends CompilationServer
 
-class HelloWorldServer extends HttpServer {
+class CompilationServer extends HttpServer {
   override def modules = Seq(LogbackModule)
 
   override def configureHttp(router: HttpRouter) {

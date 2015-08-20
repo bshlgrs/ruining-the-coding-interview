@@ -343,7 +343,7 @@ I'm interested in getting people to help me with this. Things are currently chan
         28 ./src/main/scala/java_transpiler/JavaFieldDeclaration.scala
         26 ./src/main/scala/java_transpiler/QueryActualizer.scala
         25 ./src/test/scala/java_transpiler/JavaMethodParsingSpecs.scala
-        23 ./src/main/scala/finatra_server/HelloWorldServer.scala
+        23 ./src/main/scala/finatra_server/CompilationServer.scala
         20 ./src/main/scala/data_structure_handlers/ChimeraMultisetClass.scala
         19 ./src/main/scala/data_structure_handlers/MutatingMethodImplementation.scala
         18 ./src/main/scala/helpers/VariableNameGenerator.scala
