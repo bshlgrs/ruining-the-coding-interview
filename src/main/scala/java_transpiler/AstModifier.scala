@@ -5,19 +5,19 @@ import java_transpiler.queries.UnorderedQuery
 import com.sun.javafx.fxml.expression.VariableExpression
 import useful_data_structures.UsefulUnorderedDataStructure
 
-abstract class AstModifier() {
-  def stmtMapper(statement: JavaStatement): List[JavaStatement]
-  def exprMapper(expr: JavaExpressionOrQuery): JavaExpressionOrQuery
+abstract class AstModifier[A, B]() {
+  def stmtMapper(statement: JavaStatement[A]): List[JavaStatement[B]]
+  def exprMapper(expr: JavaExpression[A]): JavaExpression[B]
 
-  def applyToStmt(stmt: JavaStatement): List[JavaStatement] = stmtMapper(mapOverStmt(stmt))
-  def applyToExpr(expr: JavaExpressionOrQuery): JavaExpressionOrQuery = exprMapper(mapOverExpr(expr))
+  def applyToStmt(stmt: JavaStatement[A]): List[JavaStatement[B]] = stmtMapper(mapOverStmt(stmt))
+  def applyToExpr(expr: JavaExpression[A]): JavaExpression[B] = exprMapper(mapOverExpr(expr))
 
   private def apply(thing: Any): Any = thing match {
-    case expr: JavaExpressionOrQuery => applyToExpr(expr)
-    case stmt: JavaStatement => applyToStmt(stmt)
+    case expr: JavaExpression[A] => applyToExpr(expr)
+    case stmt: JavaStatement[A] => applyToStmt(stmt)
   }
 
-  def mapOverStmt(stmt: JavaStatement): JavaStatement = stmt match {
+  def mapOverStmt(stmt: JavaStatement[A]): JavaStatement[B] = stmt match {
     case VariableDeclarationStatement(name, javaType, initialValue) =>
       VariableDeclarationStatement(name, javaType, initialValue.map(applyToExpr))
     case ReturnStatement(value) => ReturnStatement(applyToExpr(value))
@@ -28,35 +28,35 @@ abstract class AstModifier() {
       WhileStatement(applyToExpr(cond), action.flatMap(applyToStmt))
   }
 
-  def mapOverExpr(expr: JavaExpressionOrQuery): JavaExpressionOrQuery = expr match {
-    case JavaNull => JavaNull
-    case expr: JavaBoolLit => expr
+  def mapOverExpr(expr: JavaExpression[A]): JavaExpression[B] = expr match {
+    case JavaNull => JavaNull[B]
+    case JavaBoolLit(bool) => JavaBoolLit(bool)
     case JavaMethodCall(callee, name, args) => JavaMethodCall(applyToExpr(callee), name, args.map(applyToExpr))
     case JavaFieldAccess(thing, field) => JavaFieldAccess(applyToExpr(thing), field)
     case JavaNewObject(className, typeArgs, args) => JavaNewObject(className, typeArgs, args.map(applyToExpr))
-    case JavaThis => JavaThis
-    case expr: JavaVariable => expr
+    case JavaThis => JavaThis[B]
+    case JavaVariable(name) => JavaVariable(name)
     case JavaIfExpression(cond, ifTrue, ifFalse) => JavaIfExpression(applyToExpr(cond), applyToExpr(ifTrue), applyToExpr(ifFalse))
     case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, applyToExpr(body))
-    case JavaUnit => JavaThis
+    case JavaUnit => JavaUnit[B]
     case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, applyToExpr(value))
     case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(applyToExpr))
-    case expr: JavaStringLiteral => expr
+    case JavaStringLiteral(string) => JavaStringLiteral(string)
     case JavaMath(math) => JavaMath(math.mapOverVariables(applyToExpr))
-    case UnorderedQueryApplication(UnorderedQuery(source, wheres, limiter, reduction)) => {
-      val newQuery = UnorderedQuery(source, wheres.map(_.modify(this)), limiter.map(_.modify(this)), reduction.map(_.modify(this)))
-
-      UnorderedQueryApplication(newQuery)
-    }
-
+    case x: PeculiarExpression[A] =>
+//    case UnorderedQueryApplication(UnorderedQuery(source, wheres, limiter, reduction)) => {
+//      val newQuery = UnorderedQuery(source, wheres.map(_.modify(this)), limiter.map(_.modify(this)), reduction.map(_.modify(this)))
+//
+//      UnorderedQueryApplication(newQuery)
+//    }
   }
 
   def mapOverClass(javaClass: JavaClass): JavaClass = javaClass.modifyWithAstModifier(this)
 }
 
-case class VariableReplacer(map: Map[String, JavaExpressionOrQuery]) extends AstModifier {
-  def stmtMapper(stmt: JavaStatement) = List(stmt)
-  def exprMapper(expr: JavaExpressionOrQuery) = expr match {
+case class VariableReplacer[A](map: Map[String, JavaExpression[A]]) extends AstModifier[A, A] {
+  def stmtMapper(stmt: JavaStatement[A]) = List(stmt)
+  def exprMapper(expr: JavaExpression[A]) = expr match {
     case JavaVariable(name) => map.getOrElse(name, JavaVariable(name))
     case _ => expr
   }

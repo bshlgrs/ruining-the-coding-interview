@@ -9,8 +9,28 @@ import com.github.javaparser.ast.stmt.ExpressionStmt
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-sealed abstract class JavaExpression extends JavaExpressionOrQuery {
-  def childrenExpressions(): List[JavaExpressionOrQuery] = this match {
+sealed abstract class JavaExpression[A]  {
+  def descendantExpressions(): List[JavaExpression[A]] = {
+    this +: childrenExpressions().flatMap(_.descendantExpressions())
+  }
+
+  def childrenExpressions(): List[JavaExpression[A]]
+
+  // this is overwritten by lambda, obviously
+  def freeVariables: Set[String] = {
+    childrenExpressions().flatMap(_.freeVariables).toSet
+  }
+
+  def modify(astModifier: AstModifier): JavaExpression[A] = astModifier.applyToExpr(this)
+
+  def replaceVariables(map: Map[String, JavaExpression[A]]): JavaExpression[A] = {
+    this.modify(VariableReplacer(map))
+  }
+
+  def call(methodName: String, args: List[JavaExpression[A]] = Nil) = JavaMethodCall(this, methodName, args)
+
+
+  def childrenExpressions(): List[JavaExpression[A]] = this match {
     case JavaNull => Nil
     case expr: JavaBoolLit => Nil
     case JavaMethodCall(callee, name, args) => List(callee) ++ args
@@ -27,69 +47,46 @@ sealed abstract class JavaExpression extends JavaExpressionOrQuery {
     case JavaMath(math) => math.variables.toList
   }
 
-  def querify(c: JavaContext): JavaExpressionOrQuery = this match {
-    case JavaNull => this
-    case expr: JavaBoolLit => this
-    case JavaMethodCall(callee, name, args) => querifyMethodCall(callee.querify(c), name, args.map(_.querify(c)), c)
-    case JavaFieldAccess(thing, field) => JavaFieldAccess(thing.querify(c), field)
-    case JavaNewObject(className, typeArgs, args) => JavaNewObject(className, typeArgs, args.map(_.querify(c)))
-    case JavaThis => this
-    case expr: JavaVariable => this
-    case JavaIfExpression(cond, ifTrue, ifFalse) => JavaIfExpression(cond.querify(c), ifTrue.querify(c), ifFalse.querify(c))
-    case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, body.querify(c))
-    case JavaUnit => this
-    case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, value.querify(c))
-    case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(_.querify(c)))
-    case expr: JavaStringLiteral => this
-    case JavaMath(math) => JavaMathHelper.decasify(math.mapOverVariables(_.querify(c)))
-  }
-
-  private def querifyMethodCall(callee: JavaExpressionOrQuery,
-                                name: String,
-                                args: List[JavaExpressionOrQuery],
-                                context: JavaContext): JavaExpressionOrQuery = {
-    name match {
-      case "insert" => JavaMethodCall(callee, name, args)
-      case "remove" => JavaMethodCall(callee, name, args)
-      case _ => {
-        val mbQuerifiedCallee: Option[UnorderedQuery] = callee match {
-          case callee @ UnorderedQueryApplication(query) => Some(query)
-          case JavaVariable(innerName) if context.unorderedMultisets.keys.toSet.contains(innerName) => {
-            Some(UnorderedQuery.blank(callee))
-          }
-          case _ => None
-        }
-
-        mbQuerifiedCallee match {
-          case None => JavaMethodCall(callee, name, args)
-          case Some(querifiedCallee) => querifiedCallee.applyMethod(name, args, context)
-        }
-      }
-    }
-  }
+//  def querify(c: JavaContext): JavaExpression[A] = this match {
+//    case JavaNull => this
+//    case expr: JavaBoolLit => this
+//    case JavaMethodCall(callee, name, args) => querifyMethodCall(callee.querify(c), name, args.map(_.querify(c)), c)
+//    case JavaFieldAccess(thing, field) => JavaFieldAccess(thing.querify(c), field)
+//    case JavaNewObject(className, typeArgs, args) => JavaNewObject(className, typeArgs, args.map(_.querify(c)))
+//    case JavaThis => this
+//    case expr: JavaVariable => this
+//    case JavaIfExpression(cond, ifTrue, ifFalse) => JavaIfExpression(cond.querify(c), ifTrue.querify(c), ifFalse.querify(c))
+//    case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, body.querify(c))
+//    case JavaUnit => this
+//    case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, value.querify(c))
+//    case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(_.querify(c)))
+//    case expr: JavaStringLiteral => this
+//    case JavaMath(math) => JavaMathHelper.decasify(math.mapOverVariables(_.querify(c)))
+//  }
 }
 
-case object JavaNull extends JavaExpression
-case class JavaBoolLit(boolean: Boolean) extends JavaExpression
-case class JavaMethodCall(callee: JavaExpressionOrQuery, methodName: String, args: List[JavaExpressionOrQuery]) extends JavaExpression
-case class JavaFieldAccess(thing: JavaExpressionOrQuery, field: String) extends JavaExpression
-case class JavaNewObject(className: String, typeArgs: List[JavaType], args: List[JavaExpressionOrQuery]) extends JavaExpression
-case object JavaThis extends JavaExpression
-case class JavaVariable(name: String) extends JavaExpression {
+case object JavaNull extends JavaExpression[_]
+case class JavaBoolLit[A](boolean: Boolean) extends JavaExpression[A]
+case class JavaMethodCall[A](callee: JavaExpression[A], methodName: String, args: List[JavaExpression[A]]) extends JavaExpression[A]
+case class JavaFieldAccess[A](thing: JavaExpression[A], field: String) extends JavaExpression[A]
+case class JavaNewObject[A](className: String, typeArgs: List[JavaType], args: List[JavaExpression[A]]) extends JavaExpression[A]
+case object JavaThis extends JavaExpression[_]
+case class JavaVariable[A](name: String) extends JavaExpression[A] {
   override def freeVariables: Set[String] = Set(name)
 }
-case class JavaIfExpression(cond: JavaExpressionOrQuery, ifTrue: JavaExpressionOrQuery, ifFalse: JavaExpressionOrQuery) extends JavaExpression
-case class JavaLambdaExpr(args: List[(String, JavaType)], out: JavaExpressionOrQuery) extends JavaExpression {
+case class JavaIfExpression[A](cond: JavaExpression[A], ifTrue: JavaExpression[A], ifFalse: JavaExpression[A]) extends JavaExpression[A]
+case class JavaLambdaExpr[A](args: List[(String, JavaType)], out: JavaExpression[A]) extends JavaExpression[A] {
   override def freeVariables: Set[String] = out.freeVariables -- args.map(_._1).toSet
 }
-case object JavaUnit extends JavaExpression
-case class JavaAssignmentExpression(name: String, local: Boolean, expression: JavaExpressionOrQuery) extends JavaExpression
-case class JavaArrayInitializerExpr(items: List[JavaExpressionOrQuery]) extends JavaExpression
-case class JavaStringLiteral(string: String) extends JavaExpression
-case class JavaMath(math: MathExp[JavaExpressionOrQuery]) extends JavaExpression
+case object JavaUnit extends JavaExpression[_]
+case class JavaAssignmentExpression[A](name: String, local: Boolean, expression: JavaExpression[A]) extends JavaExpression[A]
+case class JavaArrayInitializerExpr[A](items: List[JavaExpression[A]]) extends JavaExpression[A]
+case class JavaStringLiteral[A](string: String) extends JavaExpression[A]
+case class JavaMath[A](math: MathExp[JavaExpression[A]]) extends JavaExpression[A]
+abstract class PeculiarExpression[A] extends JavaExpression[A]
 
 object JavaExpression {
-  def build(exp: Expression): JavaExpression = exp match {
+  def build(exp: Expression): JavaExpression[Nothing] = exp match {
     case null => ???
     case exp: IntegerLiteralExpr =>
       JavaMath(Number(exp.getValue.toInt))
@@ -108,7 +105,7 @@ object JavaExpression {
 
       val outExp = mbOp match {
         case None => build(exp.getValue)
-        case Some(op) => JavaMathHelper.opToMath(op, JavaFieldAccess(JavaThis, lhs), build(exp.getValue))
+        case Some(op) => JavaMathHelper.opToMath(op, JavaFieldAccess[Nothing](JavaThis, lhs), build(exp.getValue))
       }
       JavaAssignmentExpression(lhs, isLocal, outExp)
     case exp: BinaryExpr =>
@@ -152,7 +149,7 @@ object JavaExpression {
       ???
   }
 
-  def parse(stuff: String): JavaExpressionOrQuery = {
+  def parse(stuff: String): JavaExpression[A] = {
     JavaStatement.parse(s"int x = $stuff;").asInstanceOf[VariableDeclarationStatement].initialValue.get
   }
 

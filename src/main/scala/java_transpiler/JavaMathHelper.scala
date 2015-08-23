@@ -4,7 +4,7 @@ import cas._
 import com.github.javaparser.ast.expr.BinaryExpr
 
 object JavaMathHelper {
-  def opToMath(op: BinaryExpr.Operator, lhs: JavaExpressionOrQuery, rhs: JavaExpressionOrQuery): JavaExpressionOrQuery = {
+  def opToMath[A](op: BinaryExpr.Operator, lhs: JavaExpression[A], rhs: JavaExpression[A]): JavaExpression[A] = {
     op match {
       case BinaryExpr.Operator.plus => JavaMath(casify(lhs) + casify(rhs))
       case BinaryExpr.Operator.times => JavaMath(casify(lhs) * casify(rhs))
@@ -24,16 +24,16 @@ object JavaMathHelper {
     }
   }
 
-  def casify(thing: JavaExpressionOrQuery): MathExp[JavaExpressionOrQuery] = thing match {
+  def casify[A](thing: JavaExpression[A]): MathExp[JavaExpression[A]] = thing match {
     case JavaMath(ast) => ast
     case _ => CasVariable(thing)
   }
 
-  def decasify(thing: MathExp[JavaExpressionOrQuery]): JavaExpressionOrQuery = thing match {
+  def decasify[A](thing: MathExp[JavaExpression[A]]): JavaExpression[A] = thing match {
     case CasVariable(exp) => exp
     case _ => JavaMath(thing)
   }
 
-  val javaEquals = niceFunctions.equals.equals[JavaExpressionOrQuery]
-  val javaGreaterThan = niceFunctions.greaterThan.greaterThan[JavaExpressionOrQuery]
+  def javaEquals[A] = niceFunctions.equals.equals[JavaExpression[A]]
+  def javaGreaterThan[A] = niceFunctions.greaterThan.greaterThan[JavaExpression[A]]
 }
