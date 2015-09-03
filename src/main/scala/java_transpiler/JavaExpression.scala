@@ -63,6 +63,28 @@ sealed abstract class JavaExpression[A]  {
 //    case expr: JavaStringLiteral => this
 //    case JavaMath(math) => JavaMathHelper.decasify(math.mapOverVariables(_.querify(c)))
 //  }
+
+  def mapOverExpr[B](applyToExpr: JavaExpression[A] => JavaExpression[B]): JavaExpression[B] = this match {
+    case JavaNull => JavaNull[B]
+    case JavaBoolLit(bool) => JavaBoolLit(bool)
+    case JavaMethodCall(callee, name, args) => JavaMethodCall(applyToExpr(callee), name, args.map(applyToExpr))
+    case JavaFieldAccess(thing, field) => JavaFieldAccess(applyToExpr(thing), field)
+    case JavaNewObject(className, typeArgs, args) => JavaNewObject(className, typeArgs, args.map(applyToExpr))
+    case JavaThis => JavaThis[B]
+    case JavaVariable(name) => JavaVariable(name)
+    case JavaIfExpression(cond, ifTrue, ifFalse) => JavaIfExpression(applyToExpr(cond), applyToExpr(ifTrue), applyToExpr(ifFalse))
+    case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, applyToExpr(body))
+    case JavaUnit => JavaUnit[B]
+    case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, applyToExpr(value))
+    case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(applyToExpr))
+    case JavaStringLiteral(string) => JavaStringLiteral(string)
+    case JavaMath(math) => JavaMath(math.mapOverVariables(applyToExpr))
+    //    case UnorderedQueryApplication(UnorderedQuery(source, wheres, limiter, reduction)) => {
+    //      val newQuery = UnorderedQuery(source, wheres.map(_.modify(this)), limiter.map(_.modify(this)), reduction.map(_.modify(this)))
+    //
+    //      UnorderedQueryApplication(newQuery)
+    //    }
+  }
 }
 
 case object JavaNull extends JavaExpression[_]
