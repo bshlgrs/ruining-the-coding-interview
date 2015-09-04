@@ -27,9 +27,7 @@ abstract class AstModifier[A, B]() {
     case WhileStatement(cond, action) =>
       WhileStatement(applyToExpr(cond), action.flatMap(applyToStmt))
   }
-
-
-
+  
   def mapOverClass(javaClass: JavaClass): JavaClass = javaClass.modifyWithAstModifier(this)
 }
 

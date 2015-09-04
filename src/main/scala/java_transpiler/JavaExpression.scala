@@ -64,17 +64,17 @@ sealed abstract class JavaExpression[A]  {
 //    case JavaMath(math) => JavaMathHelper.decasify(math.mapOverVariables(_.querify(c)))
 //  }
 
-  def mapOverExpr[B](applyToExpr: JavaExpression[A] => JavaExpression[B]): JavaExpression[B] = this match {
-    case JavaNull => JavaNull[B]
+  def mapOverExpr(applyToExpr: JavaExpression[A] => JavaExpression[A]): JavaExpression[A] = this match {
+    case JavaNull => this
     case JavaBoolLit(bool) => JavaBoolLit(bool)
     case JavaMethodCall(callee, name, args) => JavaMethodCall(applyToExpr(callee), name, args.map(applyToExpr))
     case JavaFieldAccess(thing, field) => JavaFieldAccess(applyToExpr(thing), field)
     case JavaNewObject(className, typeArgs, args) => JavaNewObject(className, typeArgs, args.map(applyToExpr))
-    case JavaThis => JavaThis[B]
+    case JavaThis => this
     case JavaVariable(name) => JavaVariable(name)
     case JavaIfExpression(cond, ifTrue, ifFalse) => JavaIfExpression(applyToExpr(cond), applyToExpr(ifTrue), applyToExpr(ifFalse))
     case JavaLambdaExpr(args, body) => JavaLambdaExpr(args, applyToExpr(body))
-    case JavaUnit => JavaUnit[B]
+    case JavaUnit => this
     case JavaAssignmentExpression(name, local, value) => JavaAssignmentExpression(name, local, applyToExpr(value))
     case JavaArrayInitializerExpr(items) => JavaArrayInitializerExpr(items.map(applyToExpr))
     case JavaStringLiteral(string) => JavaStringLiteral(string)
@@ -127,16 +127,16 @@ object JavaExpression {
 
       val outExp = mbOp match {
         case None => build(exp.getValue)
-        case Some(op) => JavaMathHelper.opToMath(op, JavaFieldAccess[Nothing](JavaThis, lhs), build(exp.getValue))
+        case Some(op) => JavaMathHelper.opToMath(op, JavaFieldAccess[Nothing](JavaThis[Nothing], lhs), build(exp.getValue))
       }
       JavaAssignmentExpression(lhs, isLocal, outExp)
     case exp: BinaryExpr =>
-      JavaMathHelper.opToMath(exp.getOperator, build(exp.getLeft), build(exp.getRight)).asInstanceOf[JavaExpression]
+      JavaMathHelper.opToMath(exp.getOperator, build(exp.getLeft), build(exp.getRight)).asInstanceOf[JavaExpression[Nothing]]
     //    case exp: MethodCallExpr =>
     //      ???
     case exp: NameExpr => JavaVariable(exp.getName)
     case exp: FieldAccessExpr => JavaFieldAccess(build(exp.getScope), exp.getField)
-    case exp: ThisExpr => JavaThis
+    case exp: ThisExpr => JavaThis[Nothing]
     case exp: ObjectCreationExpr =>
       val javaArgs = Option(exp.getArgs).map(_.asScala.toList)
       val args = javaArgs.getOrElse(List())
@@ -158,21 +158,20 @@ object JavaExpression {
       JavaBoolLit(exp.getValue)
     case exp: MethodCallExpr =>
       val args = Try(exp.getArgs.asScala.toList).getOrElse(Nil).map(build)
-      val scope = Option(exp.getScope).map(build).getOrElse(JavaThis)
+      val scope = Option(exp.getScope).map(build).getOrElse(JavaThis[Nothing])
       JavaMethodCall(scope, exp.getName, args)
     case exp: VariableDeclarationExpr =>
       throw new RuntimeException("this case should be handled in the JavaStatement#build method :/")
     case exp: NullLiteralExpr =>
-      JavaNull
+      JavaNull[Nothing]
     case exp: UnaryExpr if exp.getOperator == UnaryExpr.Operator.negative =>
-      JavaMathHelper.opToMath(BinaryExpr.Operator.minus, JavaMath(Number(0)), build(exp.getExpr)).asInstanceOf[JavaExpression]
+      JavaMathHelper.opToMath(BinaryExpr.Operator.minus, JavaMath(Number(0)), build(exp.getExpr))
     case _ =>
       println(s"$exp : ${exp.getClass} not implemented, do it man")
       ???
   }
 
-  def parse(stuff: String): JavaExpression[A] = {
-    JavaStatement.parse(s"int x = $stuff;").asInstanceOf[VariableDeclarationStatement].initialValue.get
+  def parse(stuff: String): JavaExpression[Nothing] = {
+    JavaStatement.parse(s"int x = $stuff;").asInstanceOf[VariableDeclarationStatement[Nothing]].initialValue.get
   }
-
 }
