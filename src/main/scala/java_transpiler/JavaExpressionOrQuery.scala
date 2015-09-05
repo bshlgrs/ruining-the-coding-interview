@@ -7,7 +7,7 @@ abstract class JavaExpressionOrQuery {
   def querify(javaContext: JavaContext): JavaExpressionOrQuery
 }
 
-case class UnorderedQueryApplication(unorderedQuery: UnorderedQuery) extends JavaExpressionOrQuery[] {
+case class UnorderedQueryApplication(unorderedQuery: UnorderedQuery) extends PeculiarExpression[Queries] {
   override def childrenExpressions() = unorderedQuery.childrenExpressions()
 
   def querify(javaContext: JavaContext) = this

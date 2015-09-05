@@ -8,15 +8,15 @@ import com.github.javaparser.ast.body._
 import useful_data_structures.UsefulUnorderedDataStructure
 import scala.collection.JavaConverters._
 
-case class JavaClass(name: String,
+case class JavaClass[A](name: String,
                      constructor: Option[JavaConstructorDeclaration],
                      fields: List[JavaFieldDeclaration],
                      methods: List[JavaMethodDeclaration],
                      innerClasses: List[JavaClass]) {
-  def querify(): JavaClass = {
-    val context = JavaContext(unorderedTables())
-    this.copy(methods = methods.map(_.querify(context)))
-  }
+//  def querify(): JavaClass[A] = {
+//    val context = JavaContext(unorderedTables())
+//    this.copy(methods = methods.map(_.querify(context)))
+//  }
 
   val toType: JavaType = JavaClassType(this.name, Nil)
 
@@ -72,7 +72,7 @@ case class JavaClass(name: String,
     )
   }
 
-  def modifyWithAstModifier(astModifier: AstModifier): JavaClass = {
+  def modifyWithAstModifier[B](astModifier: AstModifier[A, B]): JavaClass[B] = {
     JavaClass(
       name,
       constructor.map(_.modifyWithAstModifier(astModifier)),

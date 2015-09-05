@@ -9,25 +9,25 @@ import scala.collection.JavaConverters._
 
 
 
-case class JavaMethodDeclaration(name: String,
-                                 returnType: Option[JavaType],
+case class JavaMethodDeclaration[A](name: String,
+                                 returnType: Option[JavaType[A]],
                                  isStatic: Boolean,
-                                 args: List[(String, JavaType)],
-                                 body: List[JavaStatement]) {
-  def modifyWithAstModifier(astModifier: AstModifier): JavaMethodDeclaration = {
+                                 args: List[(String, JavaType[A])],
+                                 body: List[JavaStatement[A]]) {
+  def modifyWithAstModifier[B](astModifier: AstModifier[A, B]): JavaMethodDeclaration[B] = {
     JavaMethodDeclaration(name, returnType, isStatic, args, body.flatMap(astModifier.applyToStmt))
   }
 
-  def querify(c: JavaContext): JavaMethodDeclaration = {
-    this.copy(body = body.map(_.querify(c)))
-  }
+//  def querify(c: JavaContext): JavaMethodDeclaration = {
+//    this.copy(body = body.map(_.querify(c)))
+//  }
 
-  def queries(): Set[UnorderedQuery] = body.flatMap(_.descendantExpressions).collect({
-    case UnorderedQueryApplication(q) => q
-  }).toSet
+//  def queries(): Set[UnorderedQuery] = body.flatMap(_.descendantExpressions).collect({
+//    case UnorderedQueryApplication(q) => q
+//  }).toSet
 
-  lazy val descendantExpressions: List[JavaExpressionOrQuery] = body.flatMap(_.descendantExpressions)
-  lazy val descendantStatements: List[JavaStatement] = body.flatMap(_.descendantStatements)
+  lazy val descendantExpressions: List[JavaExpression[A]] = body.flatMap(_.descendantExpressions)
+  lazy val descendantStatements: List[JavaStatement[A]] = body.flatMap(_.descendantStatements)
 
   lazy val variables: List[VariableScopeDetails] = {
     val argVariables = args.map((tuple) => VariableScopeDetails(tuple._1, tuple._2, true))
@@ -40,9 +40,9 @@ case class JavaMethodDeclaration(name: String,
   }
 }
 
-case class JavaConstructorDeclaration(args: List[(String, JavaType)],
-                                      body: List[JavaStatement]) {
-  def modifyWithAstModifier(astModifier: AstModifier): JavaConstructorDeclaration = {
+case class JavaConstructorDeclaration[A](args: List[(String, JavaType[A])],
+                                      body: List[JavaStatement[A]]) {
+  def modifyWithAstModifier[B](astModifier: AstModifier[A, B]): JavaConstructorDeclaration[B] = {
     JavaConstructorDeclaration(args, body.flatMap(astModifier.applyToStmt))
   }
 }
@@ -67,7 +67,7 @@ object JavaMethodDeclaration {
     JavaMethodDeclaration(name, javaType, isStatic, args, body)
   }
 
-  def maybeBuildConstructor(decl: ConstructorDeclaration): JavaConstructorDeclaration = {
+  def maybeBuildConstructor(decl: ConstructorDeclaration): JavaConstructorDeclaration[_] = {
     val args = Option(decl.getParameters).map(_.asScala.toList.map({ (x) =>
       (x.getId.getName, JavaType.build(x.getType))})).getOrElse(List())
 
@@ -76,7 +76,7 @@ object JavaMethodDeclaration {
     JavaConstructorDeclaration(args, body)
   }
 
-  def parse(string: String): JavaMethodDeclaration = {
+  def parse(string: String): JavaMethodDeclaration[_] = {
     JavaParserWrapper.parseJavaClassToAst(s"class Example { $string }").methods.head
   }
 

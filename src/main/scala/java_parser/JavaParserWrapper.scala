@@ -30,7 +30,7 @@ object JavaParserWrapper {
     JavaParser.parse(stringBuffer)
   }
 
-  def parseJavaClassToAst(java: String): JavaClass = {
+  def parseJavaClassToAst(java: String): JavaClass[_] = {
     AstBuilder.build(parseJava(java)).head
   }
 

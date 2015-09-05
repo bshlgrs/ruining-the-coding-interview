@@ -14,7 +14,7 @@ object RubyOutputter {
     writer.close()
   }
 
-  def outputClass(javaClass: JavaClass): String = {
+  def outputClass(javaClass: JavaClass[_]): String = {
     val initializationStmts = javaClass.fields.collect({
       case x if x.initialValue.isDefined => ExpressionStatement(
         JavaAssignmentExpression(x.name, false, x.initialValue.get))
@@ -53,7 +53,7 @@ object RubyOutputter {
     s"def ${if (decl.isStatic) "self." else ""}${decl.name}$args\n$body\nend"
   }
 
-  def outputStatement(stmt: JavaStatement, isAtEnd: Boolean): String = {
+  def outputStatement(stmt: JavaStatement[_], isAtEnd: Boolean): String = {
     val code = stmt match {
       case ExpressionStatement(exp) => outputExpression(exp)
       case ReturnStatement(exp) => isAtEnd match {
@@ -83,7 +83,7 @@ object RubyOutputter {
     body + "\n" + lastStatementInBody
   }
 
-  def outputExpression(exp: JavaExpressionOrQuery): String = exp match {
+  def outputExpression(exp: JavaExpression[_]): String = exp match {
     case JavaMath(ast) => outputMath(ast.mapOverVariables(outputExpression))
     case JavaAssignmentExpression(name, isLocal, expr) =>
       val variableString = if (isLocal) name else "@" + name

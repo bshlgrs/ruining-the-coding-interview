@@ -7,30 +7,30 @@ import com.github.javaparser.ast.`type`._
 import scala.collection.JavaConverters._
 import scala.util.Try
 
-sealed abstract class JavaType {
+sealed abstract class JavaType[A] {
   def toScalaTypeString(): String
 }
 
-case object JavaIntType extends JavaType {
+case object JavaIntType extends JavaType[_] {
   lazy val toScalaTypeString = "Int"
 }
 
-case object JavaBoolType extends JavaType {
+case object JavaBoolType extends JavaType[_] {
   lazy val toScalaTypeString = "Boolean"
 }
 
-case class JavaArrayType(itemType: JavaType) extends JavaType {
+case class JavaArrayType[A](itemType: JavaType[A]) extends JavaType[A] {
   lazy val toScalaTypeString = s"Array[${itemType.toScalaTypeString()}]"
 }
 
-case class JavaClassType(name: String, itemTypes: List[JavaType]) extends JavaType {
+case class JavaClassType[A](name: String, itemTypes: List[JavaType[A]]) extends JavaType[A] {
   lazy val toScalaTypeString = itemTypes match {
     case Nil => name
     case _ => s"$name[${itemTypes.map(_.toScalaTypeString()).mkString(", ")}]"
   }
 }
 
-case class JavaFunctionType(argTypes: List[JavaType], returnType: Option[JavaType]) extends JavaType {
+case class JavaFunctionType[A](argTypes: List[JavaType[A]], returnType: Option[JavaType[A]]) extends JavaType[A] {
   lazy val toScalaTypeString = {
     val typeString = returnType.map(_.toScalaTypeString()).getOrElse("Unit")
     s"(${argTypes.mkString(", ")}) => $typeString"
@@ -38,12 +38,12 @@ case class JavaFunctionType(argTypes: List[JavaType], returnType: Option[JavaTyp
 }
 
 object JavaType {
-  def build(thing: Type): JavaType = {
+  def build(thing: Type): JavaType[_] = {
     thing match {
       case x: PrimitiveType =>
         x.getType match {
-          case PrimitiveType.Primitive.Int => JavaIntType
-          case PrimitiveType.Primitive.Boolean => JavaBoolType
+          case PrimitiveType.Primitive.Int => JavaIntType[_]
+          case PrimitiveType.Primitive.Boolean => JavaBoolType[_]
           case _ =>
             ???
         }
@@ -60,7 +60,7 @@ object JavaType {
     }
   }
 
-  def buildOptionType(thing: Type): Option[JavaType] = {
+  def buildOptionType[A](thing: Type): Option[JavaType[_]] = {
     thing match {
       case _: VoidType => None
       case _ => Some(build(thing))

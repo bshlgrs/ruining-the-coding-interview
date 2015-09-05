@@ -6,7 +6,7 @@ import com.github.javaparser.ast.body._
 import scala.collection.JavaConverters._
 
 object AstBuilder {
-  def build(cu: CompilationUnit): List[JavaClass] = {
+  def build(cu: CompilationUnit): List[JavaClass[_]] = {
     cu.getTypes.asScala.map(JavaClass.build).toList
   }
 }

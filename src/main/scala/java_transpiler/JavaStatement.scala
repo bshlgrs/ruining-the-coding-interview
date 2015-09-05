@@ -47,7 +47,7 @@ sealed abstract class JavaStatement[A] {
 //  }
 }
 
-case class VariableDeclarationStatement[A](name: String, javaType: JavaType, initialValue: Option[JavaExpression[A]]) extends JavaStatement[A]
+case class VariableDeclarationStatement[A](name: String, javaType: JavaType[A], initialValue: Option[JavaExpression[A]]) extends JavaStatement[A]
 case class ReturnStatement[A](value: JavaExpression[A]) extends JavaStatement[A]
 case class ExpressionStatement[A](value: JavaExpression[A]) extends JavaStatement[A]
 case class IfStatement[A](cond: JavaExpression[A], trueCase: List[JavaStatement[A]], falseCase: List[JavaStatement[A]]) extends JavaStatement[A]
@@ -71,7 +71,7 @@ object JavaStatement {
           val javaType = JavaType.build(e.getType)
 
           val body = Try(e.getChildrenNodes.get(1).asInstanceOf[VariableDeclarator].getInit).toOption.flatMap(Option(_))
-          VariableDeclarationStatement(name, javaType, body.map(JavaExpression.build))
+          VariableDeclarationStatement(name, javaType, body.map(JavaExpression.build)).asInstanceOf[JavaStatement[Nothing]]
         case e: Expression => ExpressionStatement(JavaExpression.build(e))
       }
     case s: IfStmt =>
@@ -85,5 +85,5 @@ object JavaStatement {
       ???
   }
 
-  def parse(stuff: String): JavaStatement = JavaMethodDeclaration.parse(s"void f() { $stuff }").body.head
+  def parse(stuff: String): JavaStatement[Nothing] = JavaMethodDeclaration.parse(s"void f() { $stuff }").body.head
 }

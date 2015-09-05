@@ -9,8 +9,8 @@ abstract class AstModifier[A, B]() {
   def stmtMapper(statement: JavaStatement[A]): List[JavaStatement[B]]
   def exprMapper(expr: JavaExpression[A]): JavaExpression[B]
 
-  def applyToStmt(stmt: JavaStatement[A]): List[JavaStatement[B]] = stmtMapper(mapOverStmt(stmt))
-  def applyToExpr(expr: JavaExpression[A]): JavaExpression[B] = exprMapper(mapOverExpr(expr))
+  def applyToStmt(stmt: JavaStatement[A]): List[JavaStatement[B]] = stmtMapper(stmt)
+  def applyToExpr(expr: JavaExpression[A]): JavaExpression[B] = exprMapper(expr)
 
   private def apply(thing: Any): Any = thing match {
     case expr: JavaExpression[A] => applyToExpr(expr)
@@ -27,7 +27,7 @@ abstract class AstModifier[A, B]() {
     case WhileStatement(cond, action) =>
       WhileStatement(applyToExpr(cond), action.flatMap(applyToStmt))
   }
-  
+
   def mapOverClass(javaClass: JavaClass): JavaClass = javaClass.modifyWithAstModifier(this)
 }
 
