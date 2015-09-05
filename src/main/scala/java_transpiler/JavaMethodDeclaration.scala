@@ -76,7 +76,7 @@ object JavaMethodDeclaration {
     JavaConstructorDeclaration(args, body)
   }
 
-  def parse(string: String): JavaMethodDeclaration[_] = {
+  def parse(string: String): JavaMethodDeclaration[Nothing] = {
     JavaParserWrapper.parseJavaClassToAst(s"class Example { $string }").methods.head
   }
 

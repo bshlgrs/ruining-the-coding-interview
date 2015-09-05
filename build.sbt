@@ -26,11 +26,11 @@ libraryDependencies ++= List(
   "com.twitter.inject" %% "inject-app" % "2.0.0.M2" % "test",
   "com.twitter.inject" %% "inject-core" % "2.0.0.M2" % "test",
   "com.twitter.inject" %% "inject-modules" % "2.0.0.M2" % "test",
-  "com.twitter.finatra" %% "finatra-http" % "2.0.0.M2" % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-server" % "2.0.0.M2" % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-app" % "2.0.0.M2" % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-core" % "2.0.0.M2" % "test" classifier "tests",
-  "com.twitter.inject" %% "inject-modules" % "2.0.0.M2" % "test" classifier "tests"
+  "com.twitter.finatra" %% "finatra-http" % "2.0.0.M2" % "test" classifier "tests"
+//  "com.twitter.inject" %% "inject-server" % "2.0.0.M2" % "test" classifier "tests",
+//  "com.twitter.inject" %% "inject-app" % "2.0.0.M2" % "test" classifier "tests",
+//  "com.twitter.inject" %% "inject-core" % "2.0.0.M2" % "test" classifier "tests",
+//  "com.twitter.inject" %% "inject-modules" % "2.0.0.M2" % "test" classifier "tests"
 )
 
 mainClass in (Compile, run) := Some("Optimizer")

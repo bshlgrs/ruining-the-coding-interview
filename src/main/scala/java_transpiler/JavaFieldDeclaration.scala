@@ -3,9 +3,9 @@ package java_transpiler
 import com.github.javaparser.ast.body._
 
 
-case class JavaFieldDeclaration(name: String, javaType: JavaType, initialValue: Option[JavaExpressionOrQuery] = None) {
-  def modifyWithAstModifier(astModifier: AstModifier): JavaFieldDeclaration = {
-    JavaFieldDeclaration(name, javaType, initialValue.map(astModifier.applyToExpr))
+case class JavaFieldDeclaration[A](name: String, javaType: JavaType[A], initialValue: Option[JavaExpression[A]] = None) {
+  def modifyWithAstModifier[B](astModifier: AstModifier[A,B]): JavaFieldDeclaration[B] = {
+    JavaFieldDeclaration(name, astModifier.modifyType(javaType), initialValue.map(astModifier.applyToExpr))
   }
 }
 

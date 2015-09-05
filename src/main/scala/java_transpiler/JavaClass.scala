@@ -9,10 +9,10 @@ import useful_data_structures.UsefulUnorderedDataStructure
 import scala.collection.JavaConverters._
 
 case class JavaClass[A](name: String,
-                     constructor: Option[JavaConstructorDeclaration],
-                     fields: List[JavaFieldDeclaration],
-                     methods: List[JavaMethodDeclaration],
-                     innerClasses: List[JavaClass]) {
+                     constructor: Option[JavaConstructorDeclaration[A]],
+                     fields: List[JavaFieldDeclaration[A]],
+                     methods: List[JavaMethodDeclaration[A]],
+                     innerClasses: List[JavaClass[A]]) {
 //  def querify(): JavaClass[A] = {
 //    val context = JavaContext(unorderedTables())
 //    this.copy(methods = methods.map(_.querify(context)))

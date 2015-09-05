@@ -11,3 +11,4 @@ object Queries {
 }
 
 case class UnorderedQueryApplication(thing: Int) extends PeculiarExpression[Queries]
+

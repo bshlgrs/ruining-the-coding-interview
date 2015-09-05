@@ -11,31 +11,43 @@ sealed abstract class JavaType[A] {
   def toScalaTypeString(): String
 }
 
-case object JavaIntType extends JavaType[_] {
+abstract class NormalJavaType[A] extends JavaType[A] {
+  def mapOverChildren[B](astModifier: AstModifier[A, B]): JavaType[B] = this match {
+    case JavaIntType => JavaIntType[B]
+    case JavaBoolType => JavaBoolType[B]
+    case JavaArrayType(itemType) => JavaArrayType(astModifier.modifyType(itemType))
+    case JavaClassType(name, itemTypes) => JavaClassType(name, itemTypes.map(astModifier.modifyType))
+  }
+
+}
+
+case object JavaIntType extends NormalJavaType[_] {
   lazy val toScalaTypeString = "Int"
 }
 
-case object JavaBoolType extends JavaType[_] {
+case object JavaBoolType extends NormalJavaType[_] {
   lazy val toScalaTypeString = "Boolean"
 }
 
-case class JavaArrayType[A](itemType: JavaType[A]) extends JavaType[A] {
+case class JavaArrayType[A](itemType: JavaType[A]) extends NormalJavaType[A] {
   lazy val toScalaTypeString = s"Array[${itemType.toScalaTypeString()}]"
 }
 
-case class JavaClassType[A](name: String, itemTypes: List[JavaType[A]]) extends JavaType[A] {
+case class JavaClassType[A](name: String, itemTypes: List[JavaType[A]]) extends NormalJavaType[A] {
   lazy val toScalaTypeString = itemTypes match {
     case Nil => name
     case _ => s"$name[${itemTypes.map(_.toScalaTypeString()).mkString(", ")}]"
   }
 }
 
-case class JavaFunctionType[A](argTypes: List[JavaType[A]], returnType: Option[JavaType[A]]) extends JavaType[A] {
+case class JavaFunctionType[A](argTypes: List[JavaType[A]], returnType: Option[JavaType[A]]) extends NormalJavaType[A] {
   lazy val toScalaTypeString = {
     val typeString = returnType.map(_.toScalaTypeString()).getOrElse("Unit")
     s"(${argTypes.mkString(", ")}) => $typeString"
   }
 }
+
+abstract class PeculiarType[A] extends JavaType[A]
 
 object JavaType {
   def build(thing: Type): JavaType[_] = {
