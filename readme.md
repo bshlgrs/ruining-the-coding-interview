@@ -33,7 +33,7 @@ So my project is to make optimizing compilers at a higher level than that: at th
 
 For this presentation I’m just going to be talking about the part of this I’ve implemented. Programmers should be able to use high level data structures like multisets and have a compiler decide what data structures the multisets should be using under the hood. I’m trying to make that happen.
 
-Here’s the only problem. My adventures into automatically generating data structures lead me to a wide variety of complicated data structures, which I find fascinating but I feel very little desire to actually implement. So while I’m interested in the question of what data structures you should use, I’m not actually interested in doing all the hard work which I’d need to do to actually generate usable code. In real life, you’re not allowed to just say “and now you use a heap here”, but in coding interviews you are.
+Here’s the only problem. My adventures into automatically composing data structures lead me to a wide variety of complicated data structures, which I find fascinating but I feel very little desire to actually implement. So while I’m interested in the question of what data structures you should use, I’m not actually interested in doing all the hard work which I’d need to do to actually generate usable code. In real life, you’re not allowed to just say “and now you use a heap here”, but in coding interviews you are.
 
 So for now, I’m not trying to improve programming. I just want to ruin the coding interview.
 
