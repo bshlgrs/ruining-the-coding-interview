@@ -2,7 +2,7 @@
 
 *This code is very much a work in progress. You can get a simple demo from running it with `sbt run`: by default this optimizes the code in `example-apis/example.java`.*
 
-*I presented on this at Scala By The Bay on August 15th, 2015. [Here's my slides](https://docs.google.com/presentation/d/1G0gkzDejLqmC8KhGMXDr3CEYym8vwHxrMShkw1ps4x0/edit?usp=sharing). I'll add a video here when the videos are put up.*
+*I presented this project at Scala By The Bay on August 15th, 2015. You can watch a video of my talk [here](https://www.youtube.com/watch?v=oPFga7eg3Uw&feature=youtu.be), or read my slides [here](https://docs.google.com/presentation/d/1G0gkzDejLqmC8KhGMXDr3CEYym8vwHxrMShkw1ps4x0/edit?usp=sharing).*
 
 When I was interviewing for my current job, I spent a lot of time learning about different data structures and algorithms, and when you’d want to use one over another. You know, standard stuff. It takes log(n) time to insert items into a binary search tree, but then you can search for them in log(n) time. It takes constant time to append an item to an array, but looking for the item then takes linear time. So when you’re deciding whether to use an array or a binary search tree, you have to look at what operations you need to support, and how regularly you’re going to call the different operations, and then you want to choose the data structure which minimizes your cost.
 
